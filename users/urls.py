@@ -2,9 +2,10 @@ from django.urls import path, re_path
 from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, ConfirmEmailView
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
+from .views import ProfileViewSet
 
 router = routers.DefaultRouter()
-# router.register('', ProfileViewSet, basename='profile')
+router.register('', ProfileViewSet, basename='profile')
 urlpatterns = [
                   path('account-confirm-email/<str:key>/', ConfirmEmailView.as_view()),
                   path('register/', RegisterView.as_view(), name='account_signup'),
