@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -24,7 +25,7 @@ SECRET_KEY = 'django-insecure-gquaqrf2oj0izp#necaa^y9$d+^wy7z=w!xqu=uo_-53aitgb!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -34,7 +35,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    ''
     # My Apps
     'rest_framework',
     'drf_spectacular',
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,7 +96,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -126,7 +129,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -171,8 +175,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-# LOGIN_URL = 'http://65.108.27.178/email_confirm'
-
+LOGIN_URL = 'http://51.89.247.248:8080/confirm-email'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',
