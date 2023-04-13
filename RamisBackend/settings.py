@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # My Apps
     'rest_framework',
+    'drf_spectacular',
     'rest_framework.authtoken',
     'allauth',
     'allauth.account',
@@ -92,7 +93,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -141,7 +141,8 @@ REST_FRAMEWORK = {
     ),
     'ACCOUNT_AUTHENTICATION_METHOD': (
         'username', 'email', 'username_email'
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'my-app-auth'
@@ -171,3 +172,11 @@ OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 # LOGIN_URL = 'http://65.108.27.178/email_confirm'
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Ramis project',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+
+}
