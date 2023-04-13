@@ -35,9 +35,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    ''
     # My Apps
     'rest_framework',
+    'drf_spectacular',
     'rest_framework.authtoken',
     'allauth',
     'allauth.account',
@@ -60,7 +63,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'RamisBackend.urls'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 TEMPLATES = [
     {
@@ -93,8 +96,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -129,6 +130,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -143,7 +145,8 @@ REST_FRAMEWORK = {
     ),
     'ACCOUNT_AUTHENTICATION_METHOD': (
         'username', 'email', 'username_email'
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'my-app-auth'
@@ -172,4 +175,11 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-# LOGIN_URL = 'http://65.108.27.178/email_confirm'
+LOGIN_URL = 'http://51.89.247.248:8080/confirm-email'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Ramis project',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+
+}

@@ -9,6 +9,10 @@ from .serializers import ProfileSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+    """
+        API for update and get profile
+    """
+
     queryset = CustomUser.objects.all()
     serializer_class = ProfileSerializer
 
