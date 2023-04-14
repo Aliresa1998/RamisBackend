@@ -1,9 +1,9 @@
-import json
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import Dataserializer
+from .serializers import DataSerializer, CryptoSerializer
+from .models import Crypto
 from rest_framework.generics import ListAPIView
 import yfinance as yf
 
@@ -12,7 +12,7 @@ import yfinance as yf
 class OhlcData(APIView):
     authentication_classes = []
     permission_classes = []
-    serializer_class = Dataserializer
+    serializer_class = DataSerializer
 
     def post(self, request, *args, **kwargs):
         """
@@ -38,3 +38,10 @@ class OhlcData(APIView):
         except:
             return Response("Enter your currency name .", status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK, data=result)
+
+
+class CryptoList(ListAPIView):
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = CryptoSerializer
+    queryset = Crypto.objects.all()
