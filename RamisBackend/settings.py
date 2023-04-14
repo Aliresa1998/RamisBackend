@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 
     # Created Apps
-    'users'
+    'users',
+    'data',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'RamisBackend.urls'
-
 
 TEMPLATES = [
     {
