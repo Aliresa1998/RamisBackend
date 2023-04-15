@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # Created Apps
-    'users'
+    'users',
+    'data',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +72,6 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 ROOT_URLCONF = 'RamisBackend.urls'
-
 
 TEMPLATES = [
     {
