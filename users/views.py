@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
@@ -9,7 +10,7 @@ from dj_rest_auth.views import PasswordResetConfirmView
 
 from users.permissions import AdminAccessPermission
 from .models import CustomUser
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, UserDetailsSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -47,8 +48,9 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
 
 class AllProfileView(ListAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = ProfileSerializer
+    queryset = User.objects.all()
+    serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
-    
+    # def get_serializer_context(self):
+    #     return {'user_id':self.request.user.id}
     
