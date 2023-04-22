@@ -21,3 +21,18 @@ class CustomUser(models.Model):
         validators=[phone_regex], max_length=17, blank=True, null=True)
     is_admin = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipient_messages', null=True, blank=True)
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    send_all = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.subject
+    class Meta:
+        ordering = ['is_read', '-created_at']
