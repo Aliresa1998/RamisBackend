@@ -2,9 +2,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer
-from .models import Crypto
-from rest_framework.generics import ListAPIView
+from .serializers import DataSerializer, CryptoSerializer, TradeSerializer
+from .models import Crypto, Trade
+from rest_framework.generics import ListAPIView, CreateAPIView
 import yfinance as yf
 
 
@@ -45,3 +45,11 @@ class CryptoList(ListAPIView):
     permission_classes = []
     serializer_class = CryptoSerializer
     queryset = Crypto.objects.all()
+
+
+class CreateTrade(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TradeSerializer
+
+    def get_serializer_context(self):
+        return {"user": self.request.user}
