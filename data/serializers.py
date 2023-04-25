@@ -17,7 +17,7 @@ class CryptoSerializer(serializers.ModelSerializer):
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ["user_id", "symbol", "direction", "amount", "entry_price", "exit_price", "stop_loss", "take_profit"]
+        fields = ["user_id", "symbol", "direction", "amount", "entry_price", "stop_loss", "take_profit"]
 
     def create(self, validated_data):
         stop_loss = validated_data.get('stop_loss')
@@ -46,3 +46,16 @@ class TradeSerializer(serializers.ModelSerializer):
                                      stop_loss=self.validated_data['stop_loss'],
                                      take_profit=self.validated_data['take_profit'])
         return trade
+
+
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trade
+        fields = "__all__"
+
+
+class UpdateHistorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Trade
+        fields = ["exit_price"]
