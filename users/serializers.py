@@ -39,6 +39,7 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     recipient = serializers.ListField()
+
     class Meta:
         model = Message
         fields = ['id', 'sender_id', 'recipient',
@@ -74,6 +75,7 @@ class MessageSerializer(serializers.ModelSerializer):
             return messages
         # else:
         #     return super().save(sender_id=sender_id, **kwargs)
+
 
 class InboxMessageSerializer(serializers.ModelSerializer):
     class Meta:
