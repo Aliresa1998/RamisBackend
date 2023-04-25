@@ -1,11 +1,16 @@
+import decimal
+
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer, TradeSerializer
+from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, UpdateHistorySerializer
 from .models import Crypto, Trade
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from datetime import datetime
 import yfinance as yf
+import time
 
 
 # Create your views here.
@@ -53,3 +58,25 @@ class CreateTrade(CreateAPIView):
 
     def get_serializer_context(self):
         return {"user": self.request.user}
+
+
+class Historytrade(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = HistorySerializer
+
+    def get_queryset(self):
+        return Trade.objects.filter(user=self.request.user)
+
+
+class UpdateHistoryTrade(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateHistorySerializer
+
+    def put(self, request, *args, **kwargs):
+        exit_price = self.request.data['exit_price']
+        exit_price = decimal.Decimal(exit_price)
+        pk = kwargs['pk']
+        trade = Trade.objects.get(pk=pk)
+        pnl = (exit_price - trade.entry_price) * trade.amount
+        Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
+        return Response("success .", status=status.HTTP_200_OK)
