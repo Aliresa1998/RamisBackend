@@ -73,10 +73,17 @@ class UpdateHistoryTrade(UpdateAPIView):
     serializer_class = UpdateHistorySerializer
 
     def put(self, request, *args, **kwargs):
-        exit_price = self.request.data['exit_price']
-        exit_price = decimal.Decimal(exit_price)
-        pk = kwargs['pk']
-        trade = Trade.objects.get(pk=pk)
-        pnl = (exit_price - trade.entry_price) * trade.amount
-        Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
-        return Response("success .", status=status.HTTP_200_OK)
+        try:
+            exit_price = self.request.data['exit_price']
+            exit_price = decimal.Decimal(exit_price)
+            try:
+                pk = kwargs['pk']
+            except KeyError:
+                return Response('کلید اصلی شما اشتباه است.', status=status.HTTP_400_BAD_REQUEST)
+            trade = Trade.objects.get(pk=pk)
+            pnl = (exit_price - trade.entry_price) * trade.amount
+            Trade.objects.filter(pk=pk).update(
+                pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
+        except:
+            return Response('قیمت خارج شدن را وارد کنید', status=status.HTTP_400_BAD_REQUEST)
+        return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
