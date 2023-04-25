@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, UpdateHistorySerializer
+from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer
 from .models import Crypto, Trade
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from datetime import datetime
@@ -70,13 +70,16 @@ class Historytrade(ListAPIView):
 
 class UpdateHistoryTrade(UpdateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = UpdateHistorySerializer
 
     def put(self, request, *args, **kwargs):
-        exit_price = self.request.data['exit_price']
+        try:
+            pk = kwargs['pk']
+        except KeyError:
+            return Response('کلید اصلی شما اشتباه است.', status=status.HTTP_400_BAD_REQUEST)
+        symbol = Trade.objects.get(id=pk)
+        exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
         exit_price = decimal.Decimal(exit_price)
-        pk = kwargs['pk']
         trade = Trade.objects.get(pk=pk)
         pnl = (exit_price - trade.entry_price) * trade.amount
         Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
-        return Response("success .", status=status.HTTP_200_OK)
+        return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
