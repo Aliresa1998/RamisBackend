@@ -23,4 +23,7 @@ class Trade(models.Model):
     exit_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     stop_loss = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     take_profit = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    status = models.BooleanField(default=True)
+    pnl = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
+    close_time = models.DateTimeField(null=True, blank=True)
