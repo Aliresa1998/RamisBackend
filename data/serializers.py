@@ -48,4 +48,4 @@ class TradeSerializer(serializers.ModelSerializer):
 class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = "__all__"
+        fields = "__all__" 
