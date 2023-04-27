@@ -1,5 +1,5 @@
 from rest_framework import serializers, status
-from .models import Crypto, Trade
+from .models import Crypto, Trade, Wallet, WalletHistory
 import yfinance as yf
 from rest_framework.response import Response
 
@@ -31,7 +31,6 @@ class TradeSerializer(serializers.ModelSerializer):
         take_profit = validated_data.get('take_profit')
         direction = validated_data.get('direction')
         entry_price = validated_data.get('entry_price')
-        print(entry_price)
         if stop_loss and stop_loss >= entry_price:
             raise serializers.ValidationError({'stop_loss': 'Stop loss price must be below entry price.'})
         if take_profit and take_profit <= entry_price:
@@ -42,6 +41,7 @@ class TradeSerializer(serializers.ModelSerializer):
         if direction == 'SHORT' and stop_loss and take_profit and stop_loss <= take_profit:
             raise serializers.ValidationError(
                 {'non_field_errors': 'For short trades, stop loss must be above take profit.'})
+
         return super().create(validated_data)
 
 
@@ -49,3 +49,16 @@ class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
         fields = "__all__"
+
+
+class WalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ["user_id", "balance"]
+
+    def create(self, validated_data):
+        validated_data['user_id'] = self.context['user'].id
+        balance = Wallet.objects.get(user=self.context['user'].id).balance
+        new_balance = validated_data['balance'] + balance
+        validated_data['balance'] = new_balance
+        return super().create(validated_data)
