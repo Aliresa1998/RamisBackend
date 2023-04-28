@@ -67,3 +67,9 @@ class UpdateWalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ["user_id", "balance"]
+
+
+class GetWalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = '__all__'
