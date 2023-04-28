@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletSerializer, \
     UpdateWalletSerializer
-from .models import Crypto, Trade, Wallet
+from .models import Crypto, Trade, Wallet, WalletHistory
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, GenericAPIView
 from datetime import datetime
 import yfinance as yf
@@ -107,4 +107,25 @@ class CreateWallet(CreateAPIView, UpdateAPIView):
         Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
         wallet = Wallet.objects.get(user=self.request.user)
         res_data = UpdateWalletSerializer(wallet)
+        WalletHistory.objects.create(user_id=self.request.user.id, transaction="DEPOSIT",
+                                     amount=self.request.data["balance"])
         return Response(data=res_data.data, status=status.HTTP_200_OK)
+
+
+class WithdrawWallet(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateWalletSerializer
+
+    def put(self, request, *args, **kwargs):
+        wallet = Wallet.objects.get(user=self.request.user).balance
+        new_balance = wallet - self.request.data["balance"]
+        if new_balance < 0:
+            return Response("موجودی حساب شما کافی نیست .", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
+            wallet = Wallet.objects.get(user=self.request.user)
+            res_data = UpdateWalletSerializer(wallet)
+            WalletHistory.objects.create(user_id=self.request.user.id, transaction="WITHDRAW",
+                                         amount=self.request.data["balance"])
+            return Response(data=res_data.data, status=status.HTTP_200_OK)
+
