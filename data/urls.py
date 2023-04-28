@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import OhlcData, CryptoList, CreateTrade, Historytrade, UpdateHistoryTrade, CreateWallet, WithdrawWallet
+from .views import OhlcData, CryptoList, CreateTrade, Historytrade, UpdateHistoryTrade, CreateWallet, WithdrawWallet, \
+    GetWallet
 
 urlpatterns = [
     path('data/', OhlcData.as_view(), name='data'),
@@ -9,4 +10,5 @@ urlpatterns = [
     path("history/<int:pk>", UpdateHistoryTrade.as_view(), name='history'),
     path("wallet/", CreateWallet.as_view(), name='wallet'),
     path("withdraw/", WithdrawWallet.as_view(), name='withdraw_wallet'),
+    path('get-wallet/', GetWallet.as_view(), name='get_wallet'),
 ]
