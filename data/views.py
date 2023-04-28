@@ -83,6 +83,9 @@ class UpdateHistoryTrade(UpdateAPIView):
         trade = Trade.objects.get(pk=pk)
         pnl = (exit_price - trade.entry_price) * trade.amount
         Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
+        wallet_balance = Wallet.objects.get(user=self.request.user).balance
+        new_wallet_balance = wallet_balance + pnl
+        Wallet.objects.filter(user=self.request.user).update(balance=new_wallet_balance)
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
 
 
