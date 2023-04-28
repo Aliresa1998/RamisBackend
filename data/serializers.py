@@ -58,7 +58,12 @@ class WalletSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user_id'] = self.context['user'].id
-        balance = Wallet.objects.get(user=self.context['user'].id).balance
-        new_balance = validated_data['balance'] + balance
-        validated_data['balance'] = new_balance
+        WalletHistory.objects.create(user_id=validated_data['user_id'], transaction="DEPOSIT",
+                                     amount=validated_data["balance"])
         return super().create(validated_data)
+
+
+class UpdateWalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ["user_id", "balance"]
