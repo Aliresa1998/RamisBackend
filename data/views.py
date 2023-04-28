@@ -6,9 +6,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletSerializer, \
-    UpdateWalletSerializer
+    UpdateWalletSerializer, GetWalletSerializer
 from .models import Crypto, Trade, Wallet, WalletHistory
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, GenericAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 from datetime import datetime
 import yfinance as yf
 import time
@@ -129,3 +129,16 @@ class WithdrawWallet(UpdateAPIView):
                                          amount=self.request.data["balance"])
             return Response(data=res_data.data, status=status.HTTP_200_OK)
 
+
+class GetWallet(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GetWalletSerializer
+
+    def get_queryset(self):
+        return Wallet.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = queryset.get(pk=self.request.user.id)
+        self.check_object_permissions(self.request, obj)
+        return obj
