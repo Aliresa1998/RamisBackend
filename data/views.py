@@ -1,13 +1,14 @@
 import decimal
 
-from rest_framework.mixins import UpdateModelMixin
+from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer
-from .models import Crypto, Trade
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletSerializer, \
+    UpdateWalletSerializer
+from .models import Crypto, Trade, Wallet
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, GenericAPIView
 from datetime import datetime
 import yfinance as yf
 import time
@@ -83,3 +84,27 @@ class UpdateHistoryTrade(UpdateAPIView):
         pnl = (exit_price - trade.entry_price) * trade.amount
         Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
+
+
+class CreateWallet(CreateAPIView, UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return WalletSerializer
+        elif self.request.method == 'PUT':
+            return UpdateWalletSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"user": self.request.user})
+        return context
+
+    def put(self, request, *args, **kwargs):
+        wallet = Wallet.objects.get(user=self.request.user)
+        balance = wallet.balance
+        new_balance = self.request.data["balance"] + balance
+        Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
+        wallet = Wallet.objects.get(user=self.request.user)
+        res_data = UpdateWalletSerializer(wallet)
+        return Response(data=res_data.data, status=status.HTTP_200_OK)
