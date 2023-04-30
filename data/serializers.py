@@ -73,3 +73,14 @@ class GetWalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = '__all__'
+
+class WithdrawSerializer(serializers.ModelSerializer):
+    widthdraw_destination = serializers.CharField()
+    class Meta:
+        model = Wallet
+        fields = ["user_id", "balance", 'widthdraw_destination']
+
+class WalletHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WalletHistory
+        fields = '__all__'

@@ -35,7 +35,7 @@ class Trade(models.Model):
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.IntegerField(null=True, blank=True)
+    balance = models.IntegerField(default=0)
 
 
 class WalletHistory(models.Model):
@@ -43,3 +43,4 @@ class WalletHistory(models.Model):
     created = models.DateTimeField(auto_now=True)
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
+    wallet_destination = models.CharField(null=True, blank=True)
