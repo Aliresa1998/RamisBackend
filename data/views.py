@@ -1,17 +1,16 @@
 import decimal
+from datetime import datetime
+import yfinance as yf
 
-from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, WalletSerializer, \
-    UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
-from .models import Crypto, Trade, Wallet, WalletHistory
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
-from datetime import datetime
-import yfinance as yf
-import time
+
+from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
+    UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
+from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
 
 
 # Create your views here.
@@ -39,7 +38,8 @@ class OhlcData(APIView):
                 period = self.request.data['period']
             except KeyError:
                 period = "24h"
-            data = yf.download(tickers=f'{name}', period=f'{period}', interval=f'{interval}')
+            data = yf.download(
+                tickers=f'{name}', period=f'{period}', interval=f'{interval}')
             result = data.to_json(orient="records")
         except:
             return Response("Enter your currency name .", status=status.HTTP_400_BAD_REQUEST)
@@ -82,10 +82,12 @@ class UpdateHistoryTrade(UpdateAPIView):
         exit_price = decimal.Decimal(exit_price)
         trade = Trade.objects.get(pk=pk)
         pnl = (exit_price - trade.entry_price) * trade.amount
-        Trade.objects.filter(pk=pk).update(pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
+        Trade.objects.filter(pk=pk).update(
+            pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
         wallet_balance = Wallet.objects.get(user=self.request.user).balance
         new_wallet_balance = wallet_balance + pnl
-        Wallet.objects.filter(user=self.request.user).update(balance=new_wallet_balance)
+        Wallet.objects.filter(user=self.request.user).update(
+            balance=new_wallet_balance)
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
 
 
@@ -104,11 +106,12 @@ class CreateWallet(UpdateAPIView):
         return context
 
     def put(self, request, *args, **kwargs):
-        (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
         balance = wallet.balance
         new_balance = self.request.data["balance"] + balance
-        Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-        (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+        Wallet.objects.filter(user=self.request.user).update(
+            balance=new_balance)
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
         res_data = UpdateWalletSerializer(wallet)
         WalletHistory.objects.create(user_id=self.request.user.id, transaction="DEPOSIT",
                                      amount=self.request.data["balance"])
@@ -125,8 +128,10 @@ class WithdrawWallet(UpdateAPIView):
         if new_balance < 0:
             return Response("موجودی حساب شما کافی نیست .", status=status.HTTP_400_BAD_REQUEST)
         else:
-            Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-            (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+            Wallet.objects.filter(user=self.request.user).update(
+                balance=new_balance)
+            (wallet, created) = Wallet.objects.get_or_create(
+                user=self.request.user)
             res_data = UpdateWalletSerializer(wallet)
             WalletHistory.objects.create(user_id=self.request.user.id, transaction="WITHDRAW",
                                          amount=self.request.data["balance"], wallet_destination=self.request.data['widthdraw_destination'])
@@ -141,16 +146,33 @@ class GetWallet(RetrieveAPIView):
         return Wallet.objects.filter(user=self.request.user)
 
     def get_object(self):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #    # obj = queryset.get(pk=self.request.user.id)
-    #     (obj,created) = queryset.get_or_create(pk=self.request.user.id)
-    #     self.check_object_permissions(self.request, obj)
-    #     return obj
-          (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
-          return wallet
-    
+        #     queryset = self.filter_queryset(self.get_queryset())
+        #    # obj = queryset.get(pk=self.request.user.id)
+        #     (obj,created) = queryset.get_or_create(pk=self.request.user.id)
+        #     self.check_object_permissions(self.request, obj)
+        #     return obj
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
+        return wallet
+
 
 class WalletHistoryView(ListAPIView):
     serializer_class = WalletHistorySerializer
+
     def get_queryset(self):
         return WalletHistory.objects.filter(user=self.request.user)
+
+
+class ChallangeView(UpdateAPIView):
+    serializer_class = ChallangeSerializer
+    def get_queryset(self):
+        return Challange.objects.filter(user=self.request.user)
+    def put(self, request, *args, **kwargs):
+        Challange.objects.filter(user=self.request.user).update(challange_level=self.request.data['challange_level'])
+        account = Challange.objects.get(user=self.request.user)
+        res = ChallangeSerializer(account)
+        return Response(data=res.data, status=status.HTTP_200_OK)
+
+class AccountGrowthView(ListAPIView):
+    serializer_class = AccountGrowthSerializer
+    def get_queryset(self):
+        AccountGrowth.objects.filter(user=self.request.user).all()
