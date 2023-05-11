@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 
+from users.permissions import AdminAccessPermission
+
 from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
@@ -94,11 +96,6 @@ class UpdateHistoryTrade(UpdateAPIView):
 class CreateWallet(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateWalletSerializer
-    # def get_serializer_class(self):
-    #     if self.request.method == 'POST':
-    #         return WalletSerializer
-    #     elif self.request.method == 'PUT':
-    #         return UpdateWalletSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -146,11 +143,6 @@ class GetWallet(RetrieveAPIView):
         return Wallet.objects.filter(user=self.request.user)
 
     def get_object(self):
-        #     queryset = self.filter_queryset(self.get_queryset())
-        #    # obj = queryset.get(pk=self.request.user.id)
-        #     (obj,created) = queryset.get_or_create(pk=self.request.user.id)
-        #     self.check_object_permissions(self.request, obj)
-        #     return obj
         (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
         return wallet
 
@@ -162,17 +154,39 @@ class WalletHistoryView(ListAPIView):
         return WalletHistory.objects.filter(user=self.request.user)
 
 
-class ChallangeView(UpdateAPIView):
+class UpgradeChallangeView(UpdateAPIView):
+    permission_classes = [AdminAccessPermission]
     serializer_class = ChallangeSerializer
-    def get_queryset(self):
-        return Challange.objects.filter(user=self.request.user)
+
     def put(self, request, *args, **kwargs):
-        Challange.objects.filter(user=self.request.user).update(challange_level=self.request.data['challange_level'])
-        account = Challange.objects.get(user=self.request.user)
+        Challange.objects.filter(user=self.request.data['user']).update(
+            challange_level=self.request.data['challange_level'])
+        account = Challange.objects.get(user=self.request.data['user'])
         res = ChallangeSerializer(account)
         return Response(data=res.data, status=status.HTTP_200_OK)
 
+
+class GetChallangeView(ListAPIView):
+    serializer_class = ChallangeSerializer
+
+    def get_queryset(self):
+        current_user = self.request.user
+        (wallet, created) = Wallet.objects.get_or_create(user=current_user)
+        user_balance = wallet.balance
+        if user_balance <= 500:
+            Challange.objects.filter(
+                user=current_user).update(challange_level='1')
+        elif 500 < user_balance <= 5000:
+            Challange.objects.filter(
+                user=current_user).update(challange_level='2')
+        elif user_balance >= 500:
+            Challange.objects.filter(
+                user=current_user).update(challange_level='3')
+        return Challange.objects.filter(user=self.request.user).all()
+
+
 class AccountGrowthView(ListAPIView):
     serializer_class = AccountGrowthSerializer
+
     def get_queryset(self):
         AccountGrowth.objects.filter(user=self.request.user).all()
