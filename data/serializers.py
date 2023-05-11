@@ -88,7 +88,7 @@ class WalletHistorySerializer(serializers.ModelSerializer):
 class ChallangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challange
-        fields = ['user_id', 'challange_level']
+        fields = ['user', 'challange_level']
 
 class AccountGrowthSerializer(serializers.ModelSerializer):
     class Meta:
