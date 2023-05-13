@@ -10,11 +10,11 @@ class Crypto(models.Model):
 
 DIRECTION_CHOICES = (
     ('LONG', 'Long'),
-    ('SHORT', 'Short')
+    ('SHORT', 'Short'),
 )
 TRANSACTION_CHOICES = (
     ('DEPOSIT', 'deposit'),
-    ('WITHDRAW', 'withdraw')
+    ('WITHDRAW', 'withdraw'),
 )
 
 
@@ -24,11 +24,15 @@ class Trade(models.Model):
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     entry_price = models.DecimalField(max_digits=20, decimal_places=2)
-    exit_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
-    stop_loss = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
-    take_profit = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    exit_price = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True)
+    stop_loss = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True)
+    take_profit = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True)
     status = models.BooleanField(default=True)
-    pnl = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    pnl = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
     close_time = models.DateTimeField(null=True, blank=True)
 
@@ -44,3 +48,20 @@ class WalletHistory(models.Model):
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
     wallet_destination = models.CharField(max_length=300, null=True, blank=True)
+
+
+class Challange(models.Model):
+    LEVEL_CHOICES = (
+        ('1', 'Level One'),
+        ('2', 'Level Two'),
+        ('3', 'Level Three'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    challange_level = models.CharField(
+        max_length=1, choices=LEVEL_CHOICES, default='1')
+
+
+class AccountGrowth(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    balance = models.IntegerField(default=0)

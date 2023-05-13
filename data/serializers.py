@@ -1,5 +1,5 @@
 from rest_framework import serializers, status
-from .models import Crypto, Trade, Wallet, WalletHistory
+from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
 import yfinance as yf
 from rest_framework.response import Response
 
@@ -84,3 +84,13 @@ class WalletHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = WalletHistory
         fields = '__all__'
+
+class ChallangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Challange
+        fields = ['user', 'challange_level']
+
+class AccountGrowthSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountGrowth
+        fields = ['balance', 'date']
