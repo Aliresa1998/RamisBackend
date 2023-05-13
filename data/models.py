@@ -43,4 +43,4 @@ class WalletHistory(models.Model):
     created = models.DateTimeField(auto_now=True)
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
-    wallet_destination = models.CharField(null=True, blank=True)
+    wallet_destination = models.CharField(max_length=300, null=True, blank=True)
