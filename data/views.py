@@ -1,11 +1,11 @@
 import decimal
-
 from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, WalletSerializer, \
+from .serializers import DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, \
+    WalletSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import Crypto, Trade, Wallet, WalletHistory
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
@@ -92,6 +92,7 @@ class UpdateHistoryTrade(UpdateAPIView):
 class CreateWallet(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateWalletSerializer
+
     # def get_serializer_class(self):
     #     if self.request.method == 'POST':
     #         return WalletSerializer
@@ -104,11 +105,11 @@ class CreateWallet(UpdateAPIView):
         return context
 
     def put(self, request, *args, **kwargs):
-        (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
         balance = wallet.balance
         new_balance = self.request.data["balance"] + balance
         Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-        (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
         res_data = UpdateWalletSerializer(wallet)
         WalletHistory.objects.create(user_id=self.request.user.id, transaction="DEPOSIT",
                                      amount=self.request.data["balance"])
@@ -126,10 +127,11 @@ class WithdrawWallet(UpdateAPIView):
             return Response("موجودی حساب شما کافی نیست .", status=status.HTTP_400_BAD_REQUEST)
         else:
             Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-            (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
+            (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
             res_data = UpdateWalletSerializer(wallet)
             WalletHistory.objects.create(user_id=self.request.user.id, transaction="WITHDRAW",
-                                         amount=self.request.data["balance"], wallet_destination=self.request.data['widthdraw_destination'])
+                                         amount=self.request.data["balance"],
+                                         wallet_destination=self.request.data['widthdraw_destination'])
             return Response(data=res_data.data, status=status.HTTP_200_OK)
 
 
@@ -141,16 +143,17 @@ class GetWallet(RetrieveAPIView):
         return Wallet.objects.filter(user=self.request.user)
 
     def get_object(self):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #    # obj = queryset.get(pk=self.request.user.id)
-    #     (obj,created) = queryset.get_or_create(pk=self.request.user.id)
-    #     self.check_object_permissions(self.request, obj)
-    #     return obj
-          (wallet,created) = Wallet.objects.get_or_create(user=self.request.user)
-          return wallet
-    
+        #     queryset = self.filter_queryset(self.get_queryset())
+        #    # obj = queryset.get(pk=self.request.user.id)
+        #     (obj,created) = queryset.get_or_create(pk=self.request.user.id)
+        #     self.check_object_permissions(self.request, obj)
+        #     return obj
+        (wallet, created) = Wallet.objects.get_or_create(user=self.request.user)
+        return wallet
+
 
 class WalletHistoryView(ListAPIView):
     serializer_class = WalletHistorySerializer
+
     def get_queryset(self):
         return WalletHistory.objects.filter(user=self.request.user)
