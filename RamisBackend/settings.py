@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     # Created Apps
     'users',
     'data',
+    'celery',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -94,14 +96,20 @@ WSGI_APPLICATION = 'RamisBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'ramis',
+#         'USER': 'admin',
+#         'PASSWORD': 'admin12345689',
+#         'HOST': 'localhost',
+#         'PORT': '',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ramis',
-        'USER': 'admin',
-        'PASSWORD': 'admin12345689',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 # Password validation
@@ -160,7 +168,6 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("JWT",),
 }
 
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -200,3 +207,5 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 
 }
+BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
