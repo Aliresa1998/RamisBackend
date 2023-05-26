@@ -31,18 +31,6 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
         fields = ['id', 'username', 'email', 'profile']
 
 
-# class SendMessageSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Message
-#         fields = ['id', 'sender_id', 'recipient',
-#                   'subject', 'body', 'created_at', 'is_read']
-
-#     def create(self, validated_data):
-#         sender_id = self.context['sender_id']
-#         return Message.objects.create(sender_id=sender_id, **validated_data)
-
-
 class MessageSerializer(serializers.ModelSerializer):
     recipient = serializers.ListField()
 
