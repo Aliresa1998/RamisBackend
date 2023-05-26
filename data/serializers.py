@@ -74,21 +74,26 @@ class GetWalletSerializer(serializers.ModelSerializer):
         model = Wallet
         fields = '__all__'
 
+
 class WithdrawSerializer(serializers.ModelSerializer):
     widthdraw_destination = serializers.CharField()
+
     class Meta:
         model = Wallet
         fields = ["user_id", "balance", 'widthdraw_destination']
+
 
 class WalletHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = WalletHistory
         fields = '__all__'
 
+
 class ChallangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challange
         fields = ['user', 'challange_level']
+
 
 class AccountGrowthSerializer(serializers.ModelSerializer):
     class Meta:
