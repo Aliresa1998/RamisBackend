@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from django.conf import settings
+from django.conf.urls.static import static
 
 from users.views import CustomPasswordResetConfirmView
 
@@ -33,5 +35,5 @@ urlpatterns = [
     path('password-reset/', PasswordResetView.as_view()),
     path('password-reset-confirm/<uidb64>/<token>/',
          CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
