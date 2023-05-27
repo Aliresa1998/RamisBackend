@@ -19,7 +19,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
-        data['email'] = self.context['email']
+        try:
+            data['email'] = self.context['email']
+        except KeyError:
+            data['email'] = self.context['request'].data["email"]
         return data
 
 
