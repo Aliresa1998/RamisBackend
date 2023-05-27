@@ -23,6 +23,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             data['email'] = self.context['email']
         except KeyError:
             data['email'] = self.context['request'].data["email"]
+            data['username'] = self.context['request'].data['username']
         return data
 
 
