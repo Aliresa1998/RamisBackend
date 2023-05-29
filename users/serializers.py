@@ -23,6 +23,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             data['email'] = self.context['email']
         except KeyError:
             data['email'] = self.context['request'].data["email"]
+            data['username'] = self.context['request'].data['username']
         return data
 
 
@@ -32,18 +33,6 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'profile']
-
-
-# class SendMessageSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Message
-#         fields = ['id', 'sender_id', 'recipient',
-#                   'subject', 'body', 'created_at', 'is_read']
-
-#     def create(self, validated_data):
-#         sender_id = self.context['sender_id']
-#         return Message.objects.create(sender_id=sender_id, **validated_data)
 
 
 class MessageSerializer(serializers.ModelSerializer):
