@@ -1,9 +1,11 @@
+from django.db.models import Model
 from rest_framework import serializers
-from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
+from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from allauth.account import app_settings as allauth_settings
 from .models import CustomUser, Message, User
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
@@ -80,3 +82,9 @@ class InboxMessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'sender_id', 'recipient',
                   'subject', 'body', 'created_at', 'is_read', 'send_all']
+
+
+class EditUserNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', ]
