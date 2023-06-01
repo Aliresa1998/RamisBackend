@@ -9,11 +9,11 @@ from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.decorators import action
 from dj_rest_auth.views import PasswordResetConfirmView
 from rest_framework.views import APIView
-
+from dj_rest_auth.views import PasswordChangeView
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Message
 from .serializers import InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
-    EditUserNameSerializer, UserSerializer
+    EditUserNameSerializer, CustomPasswordChangeSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -91,3 +91,7 @@ class EditUserNameView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         User.objects.filter(username=old_username).update(username=new_username)
         return Response("یوزر نیم شما با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
+
+
+class CustomPasswordChangeView(PasswordChangeView):
+    serializer_class = CustomPasswordChangeSerializer
