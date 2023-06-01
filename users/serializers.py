@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from allauth.account import app_settings as allauth_settings
 from .models import CustomUser, Message, User
-from django.utils.translation import gettext_lazy as _
+from dj_rest_auth.serializers import PasswordChangeSerializer
 
 User = get_user_model()
 
@@ -88,3 +88,20 @@ class EditUserNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', ]
+
+
+class CustomPasswordChangeSerializer(PasswordChangeSerializer):
+    old_password = serializers.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'] = serializers.CharField()
+
+    def validate_old_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('رمز قدیمی شما درست نمیباشد .')
+        elif self.request.data['new_password1'] != self.request.data['new_password2']:
+            raise serializers.ValidationError('رمز ۱ با رمز ۲ برابر نیست .')
+        elif self.request.data['new_password1'] == self.request.data["new_password1"]:
+            raise serializers.ValidationError("رمز جدید شما با رمز قبلی یکی است .")
+        return value
