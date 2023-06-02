@@ -3,7 +3,7 @@ from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, Confi
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 from .views import AllProfileView, ProfileViewSet, SendMessageAPIView, InboxAPIView, EditUserNameView, \
-    CustomPasswordChangeView
+    CustomPasswordChangeView, AdminEditUserNameView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -17,6 +17,7 @@ urlpatterns = [
                   path('inbox/', InboxAPIView.as_view(), name='inbox'),
                   path('edit_user_name/', EditUserNameView.as_view(), name='edit_user_name'),
                   path('password_change/', CustomPasswordChangeView.as_view(), name='password'),
+                  path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',
