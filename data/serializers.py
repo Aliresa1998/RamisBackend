@@ -31,14 +31,16 @@ class TradeSerializer(serializers.ModelSerializer):
         take_profit = validated_data.get('take_profit')
         direction = validated_data.get('direction')
         entry_price = validated_data.get('entry_price')
+        if stop_loss == 0 or take_profit == 0:
+            raise serializers.ValidationError("مقدار توقف ضرر یا مقدار حد سود نمیتواند صفر باشد . ")
         if direction == 'LONG' and stop_loss and stop_loss >= entry_price:
-            raise serializers.ValidationError({'stop_loss': 'Stop loss price must be below entry price.'})
+            raise serializers.ValidationError({'stop_loss': ' . قیمت توقف ضرر باید کمتر از مقدار ورودی باشد'})
         if direction == 'LONG' and take_profit and take_profit <= entry_price:
-            raise serializers.ValidationError({'take_profit': 'Take profit price must be above entry price.'})
+            raise serializers.ValidationError({'take_profit': ' . قیمت سود باید بالاتر از قیمت ورودی باشد '})
         if direction == 'SHORT' and stop_loss and stop_loss <= entry_price:
-            raise serializers.ValidationError({'stop_loss': 'Stop loss price must be above entry price.'})
+            raise serializers.ValidationError({'stop_loss': 'قیمت توقف ضرر باید بالاتر از قیمت ورودی باشد .'})
         if direction == 'SHORT' and take_profit and take_profit >= entry_price:
-            raise serializers.ValidationError({'take_profit': 'Take profit price must be below entry price.'})
+            raise serializers.ValidationError({'take_profit': 'قیمت سود باید کمتر از قیمت ورودی باشد .'})
         if direction == 'LONG' and stop_loss and take_profit and stop_loss >= take_profit:
             raise serializers.ValidationError(
                 {'non_field_errors': 'For long trades, stop loss must be below take profit.'})
