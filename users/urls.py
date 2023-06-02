@@ -2,7 +2,7 @@ from django.urls import path, re_path
 from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, ConfirmEmailView
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
-from .views import AllProfileView, ProfileViewSet, SendMessageAPIView, InboxAPIView, EditUserNameView, \
+from .views import AdminChangePassowrdView, AllProfileView, ProfileViewSet, SendMessageAPIView, InboxAPIView, EditUserNameView, \
     CustomPasswordChangeView, AdminEditUserNameView
 
 router = routers.DefaultRouter()
@@ -18,6 +18,7 @@ urlpatterns = [
                   path('edit_user_name/', EditUserNameView.as_view(), name='edit_user_name'),
                   path('password_change/', CustomPasswordChangeView.as_view(), name='password'),
                   path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
+                  path('admin/change-password/', AdminChangePassowrdView.as_view(), name='admin-change-password'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',
