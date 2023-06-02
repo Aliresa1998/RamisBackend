@@ -109,3 +109,9 @@ class AdminEditUserNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'new_username']
+
+class AdminChangePasswordSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(required=True)
+    class Meta:
+        model = User
+        fields = ['username','new_password']
