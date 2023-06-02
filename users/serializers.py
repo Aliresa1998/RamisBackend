@@ -3,7 +3,6 @@ from rest_framework import serializers
 from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from allauth.account import app_settings as allauth_settings
 from .models import CustomUser, Message, User
 from dj_rest_auth.serializers import PasswordChangeSerializer
 
@@ -105,3 +104,14 @@ class CustomPasswordChangeSerializer(PasswordChangeSerializer):
         elif self.request.data['new_password1'] == self.request.data["new_password1"]:
             raise serializers.ValidationError("رمز جدید شما با رمز قبلی یکی است .")
         return value
+class AdminEditUserNameSerializer(serializers.ModelSerializer):
+    new_username = serializers.CharField(required=True)
+    class Meta:
+        model = User
+        fields = ['username', 'new_username']
+
+class AdminChangePasswordSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(required=True)
+    class Meta:
+        model = User
+        fields = ['username','new_password']
