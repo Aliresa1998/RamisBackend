@@ -7,12 +7,11 @@ from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.decorators import action
-from dj_rest_auth.views import PasswordResetConfirmView
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework.views import APIView
-from dj_rest_auth.views import PasswordChangeView
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Message
-from .serializers import InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
+from .serializers import AdminEditUserNameSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
     EditUserNameSerializer, CustomPasswordChangeSerializer
 
 
@@ -89,9 +88,28 @@ class EditUserNameView(APIView):
         if str(old_username) == str(new_username):
             return Response("یوز نیم جدید شما با یوزر نیم قبلی شما برار است لطفا یوزر نیم جدید خود را وارد کنید.",
                             status=status.HTTP_400_BAD_REQUEST)
-        User.objects.filter(username=old_username).update(username=new_username)
+        User.objects.filter(username=old_username).update(
+            username=new_username)
         return Response("یوزر نیم شما با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
 
 
 class CustomPasswordChangeView(PasswordChangeView):
     serializer_class = CustomPasswordChangeSerializer
+
+
+class AdminEditUserNameView(APIView):
+    permission_classes = [AdminAccessPermission]
+    serializer_class = AdminEditUserNameSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            old_username = request.data['username']
+            new_username = self.request.data['new_username']
+        except KeyError:
+            return Response("لطفا نام کاربری مورد نظر را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
+        if str(old_username) == str(new_username):
+            return Response("نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید.",
+                            status=status.HTTP_400_BAD_REQUEST)
+        User.objects.filter(username=old_username).update(
+            username=new_username)
+        return Response("نام کاربری با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
