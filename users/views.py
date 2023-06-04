@@ -1,3 +1,4 @@
+from urllib import response
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from rest_framework import status
@@ -11,8 +12,7 @@ from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework.views import APIView
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Message
-from .serializers import AdminChangePasswordSerializer, AdminEditUserNameSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
-    EditUserNameSerializer, CustomPasswordChangeSerializer
+from .serializers import AdminChangePasswordSerializer, AdminEditUserNameSerializer, EditInformationSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -75,28 +75,6 @@ class InboxAPIView(ListAPIView):
         return message
 
 
-class EditUserNameView(APIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = EditUserNameSerializer
-
-    def post(self, request, *args, **kwargs):
-        old_username = request.user
-        try:
-            new_username = self.request.data['username']
-        except KeyError:
-            return Response("لطفایوزر نیم خود را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
-        if str(old_username) == str(new_username):
-            return Response("یوز نیم جدید شما با یوزر نیم قبلی شما برار است لطفا یوزر نیم جدید خود را وارد کنید.",
-                            status=status.HTTP_400_BAD_REQUEST)
-        User.objects.filter(username=old_username).update(
-            username=new_username)
-        return Response("یوزر نیم شما با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
-
-
-class CustomPasswordChangeView(PasswordChangeView):
-    serializer_class = CustomPasswordChangeSerializer
-
-
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
     serializer_class = AdminEditUserNameSerializer
@@ -128,3 +106,31 @@ class AdminChangePassowrdView(UpdateAPIView):
         user.save()
         return Response('رمز عبور کاربر با موفقیت تغییر کرد', status=status.HTTP_200_OK)
 
+
+class EditInformationView(UpdateAPIView):
+    serializer_class = EditInformationSerializer
+    http_method_names = ['patch']
+
+    def patch(self, request, *args, **kwargs):
+        user = User.objects.get(username=request.user)
+        if not request.data:
+            return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
+                return Response('برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.', status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            try:
+                if str(request.data['new_username']) == str(user.username):
+                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.', status=status.HTTP_400_BAD_REQUEST)
+                elif str(request.data['new_username']) != str(user.username):
+                    User.objects.filter(username=user).update(
+                        username=request.data['new_username'])
+                    return Response('نام کاربری با موفقیت تغییر کرد.', status=status.HTTP_200_OK)
+            except KeyError:
+                if request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
+                    password = EditInformationSerializer(
+                        data=request.data, context={'request': request})
+                    password.is_valid(raise_exception=True)
+                    user.set_password(password.data['new_password1'])
+                    user.save()
+                    return Response('رمز عبور شما با موفقیت تغییر کرد', status=status.HTTP_200_OK)
