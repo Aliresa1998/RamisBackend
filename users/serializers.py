@@ -1,9 +1,10 @@
+from contextlib import nullcontext
 from django.db.models import Model
 from rest_framework import serializers
 from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from .models import CustomUser, Message, User
+from .models import CustomUser, Message, Ticket, User
 from dj_rest_auth.serializers import PasswordChangeSerializer
 
 User = get_user_model()
@@ -72,8 +73,6 @@ class MessageSerializer(serializers.ModelSerializer):
             ]
             Message.objects.bulk_create(messages)
             return messages
-        # else:
-        #     return super().save(sender_id=sender_id, **kwargs)
 
 
 class InboxMessageSerializer(serializers.ModelSerializer):
@@ -122,3 +121,139 @@ class EditInformationSerializer(PasswordChangeSerializer):
         model = User
         fields = ['new_username', 'old_password',
                   'new_password1', 'new_password2']
+
+
+class UserCreateTicketSerializer(serializers.ModelSerializer):
+    body = serializers.ListField(read_only=True)
+    message = serializers.CharField(required=True)
+    image = serializers.ImageField(required=False)
+
+    class Meta:
+        model = Ticket
+        fields = ['body', 'message', 'image']
+
+    def save(self, **kwargs):
+        try:
+            message = {f'{self.context["user"]}': self.validated_data['message'],
+                       'image': self.validated_data['image']}
+        except KeyError:
+            message = {
+                f'{self.context["user"]}': self.validated_data['message']}
+        body = list()
+        body.append(message)
+        ticket = Ticket.objects.create(
+            sender=self.context['user'], body=body, receiver='admin')
+        return ticket
+
+
+class GetTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = ['id', 'body', 'status', 'receiver']
+
+
+class TicketMessageSerializer(serializers.ModelSerializer):
+    body = serializers.ListField(read_only=True)
+    message = serializers.CharField(required=True)
+    image = serializers.ImageField(required=False)
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'body', 'message', 'image']
+
+    def save(self, **kwargs):
+        try:
+            message = {f'{self.context["user"]}': self.validated_data['message'],
+                       'image': self.validated_data['image']}
+        except KeyError:
+            message = {
+                f'{self.context["user"]}': self.validated_data['message']}
+        try:
+            ticket = Ticket.objects.get(id=self.validated_data['id'])
+            if ticket.status != 'close':
+                body = ticket.body
+                body.append(message)
+                ticket = Ticket.objects.filter(
+                    sender=self.context['user']).update(body=body)
+                return ticket
+            return 'تیکت بسته میباشد'
+        except ValueError:
+            raise serializers.ValidationError(
+                'آیدی برای تیکت مورد نظر درست نمیباشد')
+
+
+class AdminCreateTicketSerializer(serializers.ModelSerializer):
+    body = serializers.ListField(read_only=True)
+    message = serializers.CharField(required=True)
+    image = serializers.ImageField(required=False)
+    receiver = serializers.CharField(required=True)
+    class Meta:
+        model = Ticket
+        fields = ['body', 'message', 'image', 'receiver']
+
+    def save(self, **kwargs):
+        try:
+            message = {f'admin {self.context["user"]}': self.validated_data['message'],
+                       'image': self.validated_data['image']}
+        except KeyError:
+            message = {
+                f'admin {self.context["user"]}': self.validated_data['message']}
+        body = list()
+        body.append(message)
+        ticket = Ticket.objects.create(
+            sender=self.context['user'], body=body, receiver=self.validated_data['receiver'])
+        return ticket
+
+class AdminTicketMessageSerializer(serializers.ModelSerializer):
+    message = serializers.CharField(required=True)
+    image = serializers.ImageField(required=False)
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'message', 'image']
+
+    def save(self, **kwargs):
+        try:
+            message = {f'admin {self.context["user"]}': self.validated_data['message'],
+                       'image': self.validated_data['image']}
+        except KeyError:
+            message = {
+                f'admin {self.context["user"]}': self.validated_data['message']}
+        try:
+            ticket = Ticket.objects.get(id=self.validated_data['id'])
+            if ticket.status != 'close':
+                body = ticket.body
+                body.append(message)
+                ticket = Ticket.objects.filter(
+                    id=self.validated_data['id']).update(body=body)
+                return ticket
+            return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
+        except ValueError:
+            raise serializers.ValidationError('ایدی تیکت درست نمیباشد')
+
+
+class AdminGetTicketSerializer(serializers.ModelSerializer):
+    sender = serializers.CharField()
+
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+
+class UserCloseTicketSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id']
+
+
+class AdminCloseTicketSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+    status = serializers.CharField(required=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'status']
