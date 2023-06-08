@@ -2,8 +2,9 @@ from django.urls import path, re_path
 from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, ConfirmEmailView
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
-from .views import AdminChangePassowrdView, AllProfileView, ProfileViewSet, SendMessageAPIView, InboxAPIView, EditUserNameView, \
-    CustomPasswordChangeView, AdminEditUserNameView
+
+
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -15,10 +16,15 @@ urlpatterns = [
                   path('all_profile/', AllProfileView.as_view()),
                   path('send-message/', SendMessageAPIView.as_view(), name='send_message'),
                   path('inbox/', InboxAPIView.as_view(), name='inbox'),
-                  path('edit_user_name/', EditUserNameView.as_view(), name='edit_user_name'),
-                  path('password_change/', CustomPasswordChangeView.as_view(), name='password'),
                   path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
                   path('admin/change-password/', AdminChangePassowrdView.as_view(), name='admin-change-password'),
+                  path('edit-information/', EditInformationView.as_view(), name='edit-informations'),
+                  path('create-ticket/', UserCreateTicketView.as_view(), name='create-ticket'),
+                  path('ticket/', UserTicketMessageView.as_view(), name='ticket'),
+                  path('close-ticket/', UserCloseTicketView.as_view(), name='close-ticket'),
+                  path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
+                  path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
+                  path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',

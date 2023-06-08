@@ -1,18 +1,19 @@
+from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
+from django.db.models import Q
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.decorators import action
-from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework.views import APIView
 from users.permissions import AdminAccessPermission
-from .models import CustomUser, Message
-from .serializers import AdminChangePasswordSerializer, AdminEditUserNameSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
-    EditUserNameSerializer, CustomPasswordChangeSerializer
+from .models import CustomUser, Message, Ticket
+from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -75,28 +76,6 @@ class InboxAPIView(ListAPIView):
         return message
 
 
-class EditUserNameView(APIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = EditUserNameSerializer
-
-    def post(self, request, *args, **kwargs):
-        old_username = request.user
-        try:
-            new_username = self.request.data['username']
-        except KeyError:
-            return Response("لطفایوزر نیم خود را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
-        if str(old_username) == str(new_username):
-            return Response("یوز نیم جدید شما با یوزر نیم قبلی شما برار است لطفا یوزر نیم جدید خود را وارد کنید.",
-                            status=status.HTTP_400_BAD_REQUEST)
-        User.objects.filter(username=old_username).update(
-            username=new_username)
-        return Response("یوزر نیم شما با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
-
-
-class CustomPasswordChangeView(PasswordChangeView):
-    serializer_class = CustomPasswordChangeSerializer
-
-
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
     serializer_class = AdminEditUserNameSerializer
@@ -128,3 +107,105 @@ class AdminChangePassowrdView(UpdateAPIView):
         user.save()
         return Response('رمز عبور کاربر با موفقیت تغییر کرد', status=status.HTTP_200_OK)
 
+
+class EditInformationView(UpdateAPIView):
+    serializer_class = EditInformationSerializer
+    http_method_names = ['patch']
+
+    def patch(self, request, *args, **kwargs):
+        user = User.objects.get(username=request.user)
+        if not request.data:
+            return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
+                return Response('برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.', status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            try:
+                if str(request.data['new_username']) == str(user.username):
+                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.', status=status.HTTP_400_BAD_REQUEST)
+                elif str(request.data['new_username']) != str(user.username):
+                    User.objects.filter(username=user).update(
+                        username=request.data['new_username'])
+                    return Response('نام کاربری با موفقیت تغییر کرد.', status=status.HTTP_200_OK)
+            except KeyError:
+                if request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
+                    password = EditInformationSerializer(
+                        data=request.data, context={'request': request})
+                    password.is_valid(raise_exception=True)
+                    user.set_password(password.data['new_password1'])
+                    user.save()
+                    return Response('رمز عبور شما با موفقیت تغییر کرد', status=status.HTTP_200_OK)
+
+
+class UserCreateTicketView(CreateAPIView):
+    serializer_class = UserCreateTicketSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+
+class UserTicketMessageView(CreateAPIView, ListAPIView):
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetTicketSerializer
+        return TicketMessageSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+    def get_queryset(self):
+        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+
+
+class AdminCreateTicketView(CreateAPIView):
+    permission_classes = [AdminAccessPermission]
+    serializer_class = AdminCreateTicketSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+
+class AdminTicketMessageView(CreateAPIView, ListAPIView):
+    permission_classes = [AdminAccessPermission]
+    permission_classes = [AdminAccessPermission]
+    queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return AdminGetTicketSerializer
+        return AdminTicketMessageSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+
+class UserCloseTicketView(UpdateAPIView):
+    serializer_class = UserCloseTicketSerializer
+
+    def get_queryset(self):
+        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+
+    def put(self, request, *args, **kwargs):
+        serializer = UserCloseTicketSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        Ticket.objects.filter(
+            id=serializer.data['id']).update(status='Close')
+        return Response('تیکت بسته شد', status=status.HTTP_200_OK)
+
+
+class AdminCloseTicketView(UpdateAPIView):
+    serializer_class = AdminCloseTicketSerializer
+    permission_classes = [AdminAccessPermission]
+    queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
+
+    def put(self, request, *args, **kwargs):
+        serializer = AdminCloseTicketSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ticket_status = str()
+        ticket_status = 'بسته' if serializer.data['status'] == 'close' else 'باز'
+        try:
+            Ticket.objects.filter(
+                id=serializer.data['id']).update(status=serializer.data['status'])
+            return Response(f'تیکت {ticket_status} شد', status=status.HTTP_200_OK)
+        except:
+            return Response(f'آیدی تیکت درست نمیباشد.', status=status.HTTP_400_BAD_REQUEST)
