@@ -4,7 +4,7 @@ from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -22,6 +22,8 @@ urlpatterns = [
                   path('create-ticket/', UserCreateTicketView.as_view(), name='create-ticket'),
                   path('ticket/', UserTicketMessageView.as_view(), name='ticket'),
                   path('close-ticket/', UserCloseTicketView.as_view(), name='close-ticket'),
+                  path('isread-ticket/', TicketIsReadView.as_view(), name='isread-ticket'),
+                  path('document/', DocumentView.as_view(), name='document'),
                   path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),

@@ -1,4 +1,3 @@
-from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -12,9 +11,9 @@ from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from users.permissions import AdminAccessPermission
-from .models import CustomUser, Message, Ticket
-from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
-
+from .models import CustomUser, Document, Message, Ticket
+from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
+import ast
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
@@ -30,7 +29,7 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
-            user_id=request.user.id)
+            user_id=request.user.id, email=self.request.user.email)
         if request.method == 'GET':
             serializer = ProfileSerializer(
                 customuser, context={'email': self.request.user.email})
@@ -209,3 +208,28 @@ class AdminCloseTicketView(UpdateAPIView):
             return Response(f'تیکت {ticket_status} شد', status=status.HTTP_200_OK)
         except:
             return Response(f'آیدی تیکت درست نمیباشد.', status=status.HTTP_400_BAD_REQUEST)
+
+
+class TicketIsReadView(UpdateAPIView):
+    serializer_class = TicketIsReadSerializer
+
+    def put(self, request, *args, **kwargs):
+        ticket = Ticket.objects.get(id=self.request.data['id'])
+        messages = ticket.body
+        body = list()
+        for message in messages:
+            msg = ast.literal_eval(message)
+            if msg['is_read'] == False:
+                msg['is_read'] = True
+            body.append(msg)
+        Ticket.objects.filter(id=self.request.data['id']).update(body=body)
+        return Response('پیام خوانده شده', status=status.HTTP_200_OK)
+
+class DocumentView(CreateAPIView):
+    serializer_class = DocumentSerializer
+    def post(self, request, *args, **kwargs):
+        (doc,created) = Document.objects.get_or_create(user_id=request.user.id)
+        serializer = DocumentSerializer(doc, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_200_OK)
