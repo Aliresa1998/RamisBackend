@@ -11,7 +11,8 @@ from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework.views import APIView
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Message
-from .serializers import AdminChangePasswordSerializer, AdminEditUserNameSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
+from .serializers import AdminChangePasswordSerializer, AdminEditUserNameSerializer, InboxMessageSerializer, \
+    MessageSerializer, ProfileSerializer, UserDetailsSerializer, \
     EditUserNameSerializer, CustomPasswordChangeSerializer
 
 
@@ -127,4 +128,3 @@ class AdminChangePassowrdView(UpdateAPIView):
         user.set_password(request.data['new_password'])
         user.save()
         return Response('رمز عبور کاربر با موفقیت تغییر کرد', status=status.HTTP_200_OK)
-
