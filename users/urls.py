@@ -4,7 +4,7 @@ from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, AllProfileViewPaginations, DocumentView, EditInformationView, InboxAPIViewPagination, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessagePaginationView, UserTicketMessageView, AdminTicketMessagePaginationView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -14,17 +14,21 @@ urlpatterns = [
                   path('login/', LoginView.as_view(), name='account_login'),
                   path('logout/', LogoutView.as_view(), name='account_logout'),
                   path('all_profile/', AllProfileView.as_view()),
+                  path('all_profile/pagination/', AllProfileViewPaginations.as_view(),name='all-profile-pagination'),
                   path('send-message/', SendMessageAPIView.as_view(), name='send_message'),
                   path('inbox/', InboxAPIView.as_view(), name='inbox'),
+                  path('inbox/pagination', InboxAPIViewPagination.as_view(), name='inbox-pagination'),
                   path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
                   path('admin/change-password/', AdminChangePassowrdView.as_view(), name='admin-change-password'),
                   path('edit-information/', EditInformationView.as_view(), name='edit-informations'),
                   path('create-ticket/', UserCreateTicketView.as_view(), name='create-ticket'),
                   path('ticket/', UserTicketMessageView.as_view(), name='ticket'),
+                  path('ticket/pagination', UserTicketMessagePaginationView.as_view(), name='ticket-pagination'),
                   path('close-ticket/', UserCloseTicketView.as_view(), name='close-ticket'),
                   path('isread-ticket/', TicketIsReadView.as_view(), name='isread-ticket'),
                   path('document/', DocumentView.as_view(), name='document'),
                   path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
+                  path('admin/ticket/pagination', AdminTicketMessagePaginationView.as_view(), name='admin-ticket-pagination'),
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
                   path('verify-email/',
