@@ -10,10 +10,12 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
 import ast
+
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
@@ -58,6 +60,13 @@ class AllProfileView(ListAPIView):
     permission_classes = [AdminAccessPermission]
 
 
+class AllProfileViewPaginations(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailsSerializer
+    permission_classes = [AdminAccessPermission]
+    pagination_class = PageNumberPagination
+
+
 class SendMessageAPIView(CreateAPIView):
     permission_classes = [AdminAccessPermission]
     serializer_class = MessageSerializer
@@ -68,6 +77,16 @@ class SendMessageAPIView(CreateAPIView):
 
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
+
+    def get_queryset(self):
+        message = Message.objects.filter(recipient=self.request.user)
+        message.is_read = True
+        return message
+
+
+class InboxAPIViewPagination(ListAPIView):
+    serializer_class = InboxMessageSerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -144,6 +163,22 @@ class UserCreateTicketView(CreateAPIView):
 
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetTicketSerializer
+        return TicketMessageSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+    def get_queryset(self):
+        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+
+
+class UserTicketMessagePaginationView(CreateAPIView, ListAPIView):
+    pagination_class = PageNumberPagination
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return GetTicketSerializer
@@ -166,7 +201,20 @@ class AdminCreateTicketView(CreateAPIView):
 
 class AdminTicketMessageView(CreateAPIView, ListAPIView):
     permission_classes = [AdminAccessPermission]
+    queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return AdminGetTicketSerializer
+        return AdminTicketMessageSerializer
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+
+class AdminTicketMessagePaginationView(CreateAPIView, ListAPIView):
     permission_classes = [AdminAccessPermission]
+    pagination_class = PageNumberPagination
     queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
 
     def get_serializer_class(self):
@@ -225,11 +273,13 @@ class TicketIsReadView(UpdateAPIView):
         Ticket.objects.filter(id=self.request.data['id']).update(body=body)
         return Response('پیام خوانده شده', status=status.HTTP_200_OK)
 
+
 class DocumentView(CreateAPIView):
     serializer_class = DocumentSerializer
+
     def post(self, request, *args, **kwargs):
-        (doc,created) = Document.objects.get_or_create(user_id=request.user.id)
+        (doc, created) = Document.objects.get_or_create(user_id=request.user.id)
         serializer = DocumentSerializer(doc, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
