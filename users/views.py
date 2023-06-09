@@ -22,12 +22,9 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
         API for update and get profile
     """
 
-    queryset = CustomUser.objects.all()
     serializer_class = ProfileSerializer
-
-    def get_serializer_context(self):
-        return {'email': self.request.user.email}
-
+    def get_queryset(self):
+        return CustomUser.objects.filter(user=self.request.user)
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
@@ -42,7 +39,6 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def get(self, request, uidb64=None, token=None, *args, **kwargs):
@@ -221,15 +217,10 @@ class TicketIsReadView(UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         ticket = Ticket.objects.get(id=self.request.data['id'])
-        messages = ticket.body
-        body = list()
-        for message in messages:
-            msg = ast.literal_eval(message)
-            if msg['is_read'] == False:
-                msg['is_read'] = True
-            body.append(msg)
-        Ticket.objects.filter(id=self.request.data['id']).update(body=body)
-        return Response('پیام خوانده شده', status=status.HTTP_200_OK)
+        serializer = TicketIsReadSerializer(ticket, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DocumentView(CreateAPIView):
