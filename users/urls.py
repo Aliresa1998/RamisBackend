@@ -4,7 +4,7 @@ from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView,UserTicketMessageView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')

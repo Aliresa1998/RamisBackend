@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 
 from users.permissions import AdminAccessPermission
 
@@ -66,6 +67,7 @@ class CreateTrade(CreateAPIView):
 class Historytrade(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = HistorySerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         return Trade.objects.filter(user=self.request.user)
@@ -149,6 +151,7 @@ class GetWallet(RetrieveAPIView):
 
 class WalletHistoryView(ListAPIView):
     serializer_class = WalletHistorySerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         return WalletHistory.objects.filter(user=self.request.user)

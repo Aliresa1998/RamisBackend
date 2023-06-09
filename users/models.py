@@ -57,6 +57,7 @@ class Ticket(models.Model):
     receiver = models.CharField(null=True, blank=True, max_length=30)
     body = ArrayField(models.CharField(), blank=True, null=True)
     status = models.CharField(choices=STATUS_CHOISES, default='open')
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
