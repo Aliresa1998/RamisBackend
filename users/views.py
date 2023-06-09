@@ -58,12 +58,6 @@ class AllProfileView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
-
-
-class AllProfileViewPaginations(ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserDetailsSerializer
-    permission_classes = [AdminAccessPermission]
     pagination_class = PageNumberPagination
 
 
@@ -76,15 +70,6 @@ class SendMessageAPIView(CreateAPIView):
 
 
 class InboxAPIView(ListAPIView):
-    serializer_class = InboxMessageSerializer
-
-    def get_queryset(self):
-        message = Message.objects.filter(recipient=self.request.user)
-        message.is_read = True
-        return message
-
-
-class InboxAPIViewPagination(ListAPIView):
     serializer_class = InboxMessageSerializer
     pagination_class = PageNumberPagination
 
@@ -163,20 +148,6 @@ class UserCreateTicketView(CreateAPIView):
 
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return GetTicketSerializer
-        return TicketMessageSerializer
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
-    def get_queryset(self):
-        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
-
-
-class UserTicketMessagePaginationView(CreateAPIView, ListAPIView):
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
@@ -202,20 +173,7 @@ class AdminCreateTicketView(CreateAPIView):
 class AdminTicketMessageView(CreateAPIView, ListAPIView):
     permission_classes = [AdminAccessPermission]
     queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return AdminGetTicketSerializer
-        return AdminTicketMessageSerializer
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
-
-class AdminTicketMessagePaginationView(CreateAPIView, ListAPIView):
-    permission_classes = [AdminAccessPermission]
     pagination_class = PageNumberPagination
-    queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
