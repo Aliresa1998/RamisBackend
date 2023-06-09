@@ -176,7 +176,7 @@ REST_FRAMEWORK = {
         'username', 'email', 'username_email'
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'PAGE_SIZE':10,
+    'PAGE_SIZE': 10,
 }
 
 JWT_AUTH_COOKIE = 'my-app-auth'
@@ -207,3 +207,4 @@ SPECTACULAR_SETTINGS = {
 }
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']
