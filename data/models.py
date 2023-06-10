@@ -48,7 +48,8 @@ class WalletHistory(models.Model):
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
     wallet_destination = models.CharField(max_length=300, null=True, blank=True)
-
+    class Meta:
+        ordering = ['-created']
 
 class Challange(models.Model):
     LEVEL_CHOICES = (

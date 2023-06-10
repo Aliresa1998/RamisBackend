@@ -12,7 +12,6 @@ User = get_user_model()
 
 class ProfileSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
-    email = serializers.EmailField(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -21,10 +20,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
+        user_email = User.objects.get(id=data['user_id']).email
         try:
-            data['email'] = self.context['email']
+            data['email'] = user_email
         except KeyError:
-            data['email'] = self.context['request'].data["email"]
+            data['email'] = user_email
             data['username'] = self.context['request'].data['username']
         return data
 
@@ -135,10 +135,10 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         try:
             message = {f'{self.context["user"]}': self.validated_data['message'],
-                       'image': self.validated_data['image'], 'is_read': False}
+                       'image': self.validated_data['image']}
         except KeyError:
             message = {
-                f'{self.context["user"]}': self.validated_data['message'], 'is_read': False}
+                f'{self.context["user"]}': self.validated_data['message']}
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
@@ -149,7 +149,7 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
 class GetTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['id', 'body', 'status', 'receiver']
+        fields = ['id', 'body', 'status', 'receiver','is_read']
 
 
 class TicketMessageSerializer(serializers.ModelSerializer):
@@ -165,17 +165,17 @@ class TicketMessageSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         try:
             message = {f'{self.context["user"]}': self.validated_data['message'],
-                       'image': self.validated_data['image'], 'is_read': False}
+                       'image': self.validated_data['image']}
         except KeyError:
             message = {
-                f'{self.context["user"]}': self.validated_data['message'], 'is_read': False}
+                f'{self.context["user"]}': self.validated_data['message'], }
         try:
             ticket = Ticket.objects.get(id=self.validated_data['id'])
             if ticket.status != 'close':
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body)
+                    id=self.validated_data['id']).update(body=body, is_read=False)
                 return ticket
             return 'تیکت بسته میباشد'
         except ValueError:
@@ -196,10 +196,10 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         try:
             message = {f'admin {self.context["user"]}': self.validated_data['message'],
-                       'image': self.validated_data['image'], 'is_read': False}
+                       'image': self.validated_data['image']}
         except KeyError:
             message = {
-                f'admin {self.context["user"]}': self.validated_data['message'], 'is_read': False}
+                f'admin {self.context["user"]}': self.validated_data['message']}
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
@@ -219,17 +219,17 @@ class AdminTicketMessageSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         try:
             message = {f'admin {self.context["user"]}': self.validated_data['message'],
-                       'image': self.validated_data['image'], 'is_read': False}
+                       'image': self.validated_data['image']}
         except KeyError:
             message = {
-                f'admin {self.context["user"]}': self.validated_data['message'], 'is_read': False}
+                f'admin {self.context["user"]}': self.validated_data['message']}
         try:
             ticket = Ticket.objects.get(id=self.validated_data['id'])
             if ticket.status != 'close':
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body)
+                    id=self.validated_data['id']).update(body=body,is_read=False)
                 return ticket
             return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
         except ValueError:
@@ -267,7 +267,12 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ['id']
-
+    def save(self, **kwargs):
+        try:
+            ticket = Ticket.objects.filter(id=self.validated_data['id']).update(is_read=True)
+            return ticket
+        except ValueError:
+            raise serializers.ValidationError('ایدی تیکت درست نمیباشد')
 
 class DocumentSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
