@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
 from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
@@ -13,7 +13,11 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
-from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
+from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
+    AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
+    TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
+    UserDetailsSerializer, SearchProfileSerializer
 import ast
 
 
@@ -116,12 +120,16 @@ class EditInformationView(UpdateAPIView):
         if not request.data:
             return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
         try:
-            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
-                return Response('برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.', status=status.HTTP_400_BAD_REQUEST)
+            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and \
+                    request.data['new_password2']:
+                return Response(
+                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.',
+                    status=status.HTTP_400_BAD_REQUEST)
         except KeyError:
             try:
                 if str(request.data['new_username']) == str(user.username):
-                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.', status=status.HTTP_400_BAD_REQUEST)
+                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.',
+                                    status=status.HTTP_400_BAD_REQUEST)
                 elif str(request.data['new_username']) != str(user.username):
                     User.objects.filter(username=user).update(
                         username=request.data['new_username'])
@@ -223,6 +231,7 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
 class DocumentView(CreateAPIView):
     serializer_class = DocumentSerializer
 
@@ -232,3 +241,4 @@ class DocumentView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
