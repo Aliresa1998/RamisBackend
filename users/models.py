@@ -55,12 +55,13 @@ class Ticket(models.Model):
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='sender_ticket')
     receiver = models.CharField(null=True, blank=True, max_length=30)
-    body = ArrayField(models.CharField(), blank=True, null=True)
-    status = models.CharField(choices=STATUS_CHOISES, default='open')
+    body = ArrayField(models.CharField(max_length=250), blank=True, null=True)
+    status = models.CharField(choices=STATUS_CHOISES, default='open', max_length=250)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
+
 
 class Document(models.Model):
     user = models.OneToOneField(
