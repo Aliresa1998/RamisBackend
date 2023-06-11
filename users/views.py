@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
 from rest_framework import status, filters
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
@@ -17,8 +18,7 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
-    UserDetailsSerializer
-import ast
+    UserDetailsSerializer, UpdateImageSerializer
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -250,3 +250,24 @@ class DocumentView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetTicketBYID(ListAPIView):
+    serializer_class = GetTicketSerializer
+
+    def get_queryset(self, **kwargs):
+        return Ticket.objects.filter(id=self.kwargs['id'])
+
+
+class ProfilePictureUpdate(UpdateAPIView):
+    serializer_class = UpdateImageSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, *args, **kwargs):
+        Document.objects.filter(user=self.request.user).update(
+            profile_image=self.request.data['profile_image'])
+        user_document = Document.objects.get(user=self.request.user)
+        serializer = UpdateImageSerializer(user_document, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
