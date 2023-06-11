@@ -5,7 +5,9 @@ from rest_framework import routers
 
 from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
     AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
-    AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView
+    AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
+    GetTicketBYID, ProfilePictureUpdate
+
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
 urlpatterns = [
@@ -21,9 +23,12 @@ urlpatterns = [
                   path('edit-information/', EditInformationView.as_view(), name='edit-informations'),
                   path('create-ticket/', UserCreateTicketView.as_view(), name='create-ticket'),
                   path('ticket/', UserTicketMessageView.as_view(), name='ticket'),
+                  path('ticket/<int:id>', GetTicketBYID.as_view(), name='ticket_by_id'),
                   path('close-ticket/', UserCloseTicketView.as_view(), name='close-ticket'),
                   path('isread-ticket/', TicketIsReadView.as_view(), name='isread-ticket'),
                   path('document/', DocumentView.as_view(), name='document'),
+                  path('document/update/', ProfilePictureUpdate.as_view(),
+                       name='profile_picture_update'),
                   path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
