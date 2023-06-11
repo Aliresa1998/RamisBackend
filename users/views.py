@@ -17,7 +17,7 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
-    UserDetailsSerializer, SearchProfileSerializer
+    UserDetailsSerializer
 import ast
 
 
@@ -27,8 +27,10 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
 
     serializer_class = ProfileSerializer
+
     def get_queryset(self):
         return CustomUser.objects.filter(user=self.request.user)
+
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
@@ -43,6 +45,7 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
+
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def get(self, request, uidb64=None, token=None, *args, **kwargs):
@@ -59,6 +62,8 @@ class AllProfileView(ListAPIView):
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
     pagination_class = PageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', "email"]
 
 
 class SendMessageAPIView(CreateAPIView):
@@ -72,6 +77,9 @@ class SendMessageAPIView(CreateAPIView):
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
     pagination_class = PageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'sender_id', 'recipient',
+                     'subject', 'body', 'created_at', 'is_read']
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -153,6 +161,8 @@ class UserCreateTicketView(CreateAPIView):
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
     pagination_class = PageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'body', 'status', 'receiver', 'is_read']
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -231,7 +241,6 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 class DocumentView(CreateAPIView):
     serializer_class = DocumentSerializer
 
@@ -241,4 +250,3 @@ class DocumentView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
