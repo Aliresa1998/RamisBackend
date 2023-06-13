@@ -1,9 +1,8 @@
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
-from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
+from dj_rest_auth.views import PasswordResetConfirmView
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
@@ -14,8 +13,7 @@ from rest_framework.pagination import PageNumberPagination
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
-import ast
-
+from .pagination import CustomPagination
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
@@ -23,8 +21,10 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
 
     serializer_class = ProfileSerializer
+
     def get_queryset(self):
         return CustomUser.objects.filter(user=self.request.user)
+
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
@@ -40,6 +40,7 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
             serializer.save()
             return Response(serializer.data)
 
+
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def get(self, request, uidb64=None, token=None, *args, **kwargs):
         try:
@@ -54,7 +55,7 @@ class AllProfileView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
 
 class SendMessageAPIView(CreateAPIView):
@@ -67,7 +68,7 @@ class SendMessageAPIView(CreateAPIView):
 
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -144,7 +145,7 @@ class UserCreateTicketView(CreateAPIView):
 
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -169,7 +170,7 @@ class AdminCreateTicketView(CreateAPIView):
 class AdminTicketMessageView(CreateAPIView, ListAPIView):
     permission_classes = [AdminAccessPermission]
     queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
