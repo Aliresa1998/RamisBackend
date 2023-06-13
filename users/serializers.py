@@ -276,7 +276,8 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Document
-        fields = ['user_id','profile_image', 'identity_card',
+        fields = ['user_id', 'profile_image', 'identity_card',
                   'birth_certificate', 'Commitment_letter']

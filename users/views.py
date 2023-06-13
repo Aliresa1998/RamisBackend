@@ -117,12 +117,16 @@ class EditInformationView(UpdateAPIView):
         if not request.data:
             return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
         try:
-            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
-                return Response('برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.', status=status.HTTP_400_BAD_REQUEST)
+            if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and \
+                    request.data['new_password2']:
+                return Response(
+                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.',
+                    status=status.HTTP_400_BAD_REQUEST)
         except KeyError:
             try:
                 if str(request.data['new_username']) == str(user.username):
-                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.', status=status.HTTP_400_BAD_REQUEST)
+                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.',
+                                    status=status.HTTP_400_BAD_REQUEST)
                 elif str(request.data['new_username']) != str(user.username):
                     User.objects.filter(username=user).update(
                         username=request.data['new_username'])
@@ -224,6 +228,7 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
 class DocumentView(CreateAPIView):
     serializer_class = DocumentSerializer
 
@@ -233,3 +238,4 @@ class DocumentView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
