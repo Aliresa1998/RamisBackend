@@ -6,7 +6,7 @@ from rest_framework import routers
 from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
     AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
-    GetTicketBYID, ProfilePictureUpdate
+    GetTicketBYID, ProfilePictureUpdate, GetInboxByID
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -18,6 +18,7 @@ urlpatterns = [
                   path('all_profile/', AllProfileView.as_view()),
                   path('send-message/', SendMessageAPIView.as_view(), name='send_message'),
                   path('inbox/', InboxAPIView.as_view(), name='inbox'),
+                  path('inbox/<int:id>', GetInboxByID.as_view(), name='inbox_by_id'),
                   path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
                   path('admin/change-password/', AdminChangePassowrdView.as_view(), name='admin-change-password'),
                   path('edit-information/', EditInformationView.as_view(), name='edit-informations'),

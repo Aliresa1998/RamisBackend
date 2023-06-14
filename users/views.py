@@ -271,3 +271,10 @@ class ProfilePictureUpdate(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class GetInboxByID(ListAPIView):
+    serializer_class = InboxMessageSerializer
+
+    def get_queryset(self, **kwargs):
+        return Message.objects.filter(id=self.kwargs['id'])
