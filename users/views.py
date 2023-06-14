@@ -78,8 +78,7 @@ class SendMessageAPIView(CreateAPIView):
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'sender_id', 'recipient',
-                     'subject', 'body', 'created_at', 'is_read']
+    search_fields = ['subject']
     pagination_class = CustomPagination
 
     def get_queryset(self):
