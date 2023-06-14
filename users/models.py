@@ -1,5 +1,3 @@
-import email
-from enum import Flag
 from django.db import models
 
 from django.db import models
@@ -55,11 +53,14 @@ class Ticket(models.Model):
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='sender_ticket')
     receiver = models.CharField(null=True, blank=True, max_length=30)
-    body = ArrayField(models.CharField(max_length=250), blank=True, null=True)
-    status = models.CharField(choices=STATUS_CHOISES, default='open', max_length=250)
+    subject = models.CharField(null=True, blank=True, max_length=50)
+    body = ArrayField(models.CharField(), blank=True, null=True)
+    status = models.CharField(choices=STATUS_CHOISES, default='open')
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # def __str__(self) -> str:
+    #     return self.subject
     class Meta:
         ordering = ['-created_at']
 
