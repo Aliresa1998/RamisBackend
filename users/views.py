@@ -61,9 +61,9 @@ class AllProfileView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
-    pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', "email"]
+    pagination_class = CustomPagination
 
 
 class SendMessageAPIView(CreateAPIView):
@@ -76,10 +76,11 @@ class SendMessageAPIView(CreateAPIView):
 
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
-    pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'sender_id', 'recipient',
                      'subject', 'body', 'created_at', 'is_read']
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -160,9 +161,10 @@ class UserCreateTicketView(CreateAPIView):
 
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
-    pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'body', 'status', 'receiver', 'is_read']
+    pagination_class = CustomPagination
+
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -187,7 +189,7 @@ class AdminCreateTicketView(CreateAPIView):
 class AdminTicketMessageView(CreateAPIView, ListAPIView):
     permission_classes = [AdminAccessPermission]
     queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
