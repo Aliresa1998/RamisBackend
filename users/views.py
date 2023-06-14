@@ -1,8 +1,10 @@
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
-from dj_rest_auth.views import PasswordResetConfirmView
-from rest_framework import status
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
+from rest_framework import status, filters
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
@@ -12,8 +14,12 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
-from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer,  UserCreateTicketSerializer, UserDetailsSerializer
-from .pagination import CustomPagination
+from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
+    AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
+    TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
+    UserDetailsSerializer, UpdateImageSerializer
+
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     """
@@ -55,6 +61,8 @@ class AllProfileView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', "email"]
     pagination_class = CustomPagination
 
 
@@ -68,7 +76,11 @@ class SendMessageAPIView(CreateAPIView):
 
 class InboxAPIView(ListAPIView):
     serializer_class = InboxMessageSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'sender_id', 'recipient',
+                     'subject', 'body', 'created_at', 'is_read']
     pagination_class = CustomPagination
+
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -149,7 +161,10 @@ class UserCreateTicketView(CreateAPIView):
 
 
 class UserTicketMessageView(CreateAPIView, ListAPIView):
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'body', 'status', 'receiver', 'is_read']
     pagination_class = CustomPagination
+
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -228,7 +243,6 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 class DocumentView(CreateAPIView):
     serializer_class = DocumentSerializer
 
@@ -239,3 +253,23 @@ class DocumentView(CreateAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class GetTicketBYID(ListAPIView):
+    serializer_class = GetTicketSerializer
+
+    def get_queryset(self, **kwargs):
+        return Ticket.objects.filter(id=self.kwargs['id'])
+
+
+class ProfilePictureUpdate(UpdateAPIView):
+    serializer_class = UpdateImageSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, *args, **kwargs):
+        Document.objects.filter(user=self.request.user).update(
+            profile_image=self.request.data['profile_image'])
+        user_document = Document.objects.get(user=self.request.user)
+        serializer = UpdateImageSerializer(user_document, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)

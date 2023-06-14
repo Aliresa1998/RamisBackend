@@ -47,7 +47,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def save(self, **kwargs):
         sender_id = self.context['sender_id']
-        if self.validated_data['send_all'] == True:
+        if self.validated_data['send_all']:
             messages = [
                 Message(
                     sender_id=sender_id,
@@ -149,7 +149,7 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
 class GetTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['id', 'body', 'status', 'receiver','is_read']
+        fields = ['id', 'body', 'status', 'receiver', 'is_read']
 
 
 class TicketMessageSerializer(serializers.ModelSerializer):
@@ -229,7 +229,7 @@ class AdminTicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body,is_read=False)
+                    id=self.validated_data['id']).update(body=body, is_read=False)
                 return ticket
             return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
         except ValueError:
@@ -267,12 +267,14 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ['id']
+
     def save(self, **kwargs):
         try:
             ticket = Ticket.objects.filter(id=self.validated_data['id']).update(is_read=True)
             return ticket
         except ValueError:
             raise serializers.ValidationError('ایدی تیکت درست نمیباشد')
+
 
 class DocumentSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
@@ -281,3 +283,9 @@ class DocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = ['user_id', 'profile_image', 'identity_card',
                   'birth_certificate', 'Commitment_letter']
+
+
+class UpdateImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['profile_image']
