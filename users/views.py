@@ -19,6 +19,7 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer
+from .pagination import CustomPagination
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -80,7 +81,6 @@ class InboxAPIView(ListAPIView):
     search_fields = ['id', 'sender_id', 'recipient',
                      'subject', 'body', 'created_at', 'is_read']
     pagination_class = CustomPagination
-
 
     def get_queryset(self):
         message = Message.objects.filter(recipient=self.request.user)
@@ -164,7 +164,6 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'body', 'status', 'receiver', 'is_read']
     pagination_class = CustomPagination
-
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
