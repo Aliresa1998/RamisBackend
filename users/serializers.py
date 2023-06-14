@@ -1,7 +1,5 @@
-from contextlib import nullcontext
-from django.db.models import Model
 from rest_framework import serializers
-from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer as BaseUserDetailsSerializer
+from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from .models import CustomUser, Message, Ticket, User, Document
@@ -127,10 +125,10 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
     body = serializers.ListField(read_only=True)
     message = serializers.CharField(required=True)
     image = serializers.ImageField(required=False)
-
+    subject = serializers.CharField(required=True)
     class Meta:
         model = Ticket
-        fields = ['body', 'message', 'image']
+        fields = ['body','subject', 'message', 'image']
 
     def save(self, **kwargs):
         try:
@@ -142,14 +140,14 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], body=body, receiver='admin')
+            sender=self.context['user'],subject=self.validated_data['subject'], body=body, receiver='admin')
         return ticket
 
 
 class GetTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['id', 'body', 'status', 'receiver', 'is_read']
+        fields = ['id','subject', 'body', 'status', 'receiver','is_read']
 
 
 class TicketMessageSerializer(serializers.ModelSerializer):
@@ -188,10 +186,10 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
     message = serializers.CharField(required=True)
     image = serializers.ImageField(required=False)
     receiver = serializers.CharField(required=True)
-
+    subject = serializers.CharField(required=True)
     class Meta:
         model = Ticket
-        fields = ['body', 'message', 'image', 'receiver']
+        fields = ['subject','body', 'message', 'image', 'receiver']
 
     def save(self, **kwargs):
         try:
@@ -203,7 +201,7 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], body=body, receiver=self.validated_data['receiver'])
+            sender=self.context['user'],subject=self.validated_data['subject'] ,body=body, receiver=self.validated_data['receiver'])
         return ticket
 
 
