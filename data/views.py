@@ -9,14 +9,16 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 
-from users.permissions import AdminAccessPermission
-
 from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
 
+from users.permissions import AdminAccessPermission
+from users.pagination import CustomPagination
 
 # Create your views here.
+
+
 class OhlcData(APIView):
     authentication_classes = []
     permission_classes = []
@@ -67,7 +69,7 @@ class CreateTrade(CreateAPIView):
 class Historytrade(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = HistorySerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         return Trade.objects.filter(user=self.request.user)
@@ -151,7 +153,7 @@ class GetWallet(RetrieveAPIView):
 
 class WalletHistoryView(ListAPIView):
     serializer_class = WalletHistorySerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         return WalletHistory.objects.filter(user=self.request.user)
