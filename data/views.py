@@ -72,7 +72,14 @@ class Historytrade(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return Trade.objects.filter(user=self.request.user)
+        if self.kwargs['type'] == 'short':
+            return Trade.objects.filter(user=self.request.user).filter(direction='SHORT').all()
+        elif self.kwargs['type'] == 'long':
+            return Trade.objects.filter(user=self.request.user).filter(direction='LONG').all()
+        elif self.kwargs['type'] == 'all':
+            return Trade.objects.filter(user=self.request.user).all()
+        else:
+            return Response('تایپ را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateHistoryTrade(UpdateAPIView):

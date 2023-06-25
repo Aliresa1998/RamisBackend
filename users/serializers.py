@@ -74,9 +74,11 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class InboxMessageSerializer(serializers.ModelSerializer):
+    sender = serializers.CharField()
+    recipient = serializers.CharField()
     class Meta:
         model = Message
-        fields = ['id', 'sender_id', 'recipient',
+        fields = ['id', 'sender', 'recipient',
                   'subject', 'body', 'created_at', 'is_read', 'send_all']
 
 
