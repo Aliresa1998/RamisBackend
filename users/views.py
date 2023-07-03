@@ -85,11 +85,14 @@ class InboxAPIView(ListAPIView):
         if self.kwargs['type'] == 'all':
             Message.objects.filter(recipient=self.request.user).all()
         elif self.kwargs['type'] == 'read':
-            Message.objects.filter(recipient=self.request.user).filter(is_read=True).all()
+            Message.objects.filter(
+                recipient=self.request.user).filter(is_read=True).all()
         elif self.kwargs['type'] == 'unread':
-            Message.objects.filter(recipient=self.request.user).filter(is_read=False).all()
+            Message.objects.filter(recipient=self.request.user).filter(
+                is_read=False).all()
         else:
             return Response('تایپ پیام را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
+
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
@@ -177,7 +180,14 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
         return {'user': self.request.user}
 
     def get_queryset(self):
-        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+        if self.kwargs['type'] == 'all':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+        if self.kwargs['type'] == 'read':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+            filter(is_read=True).all()
+        if self.kwargs['type'] == 'unread':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+            filter(is_read=False).all()
 
 
 class AdminCreateTicketView(CreateAPIView):
