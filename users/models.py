@@ -58,7 +58,7 @@ class Ticket(models.Model):
     status = models.CharField(choices=STATUS_CHOISES, default='open')
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    last_modified = models.DateTimeField(auto_now=True, null=True, blank=True)
     # def __str__(self) -> str:
     #     return self.subject
     class Meta:
