@@ -82,10 +82,14 @@ class InboxAPIView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        message = Message.objects.filter(recipient=self.request.user)
-        message.is_read = True
-        return message
-
+        if self.kwargs['type'] == 'all':
+            Message.objects.filter(recipient=self.request.user).all()
+        elif self.kwargs['type'] == 'read':
+            Message.objects.filter(recipient=self.request.user).filter(is_read=True).all()
+        elif self.kwargs['type'] == 'unread':
+            Message.objects.filter(recipient=self.request.user).filter(is_read=False).all()
+        else:
+            return Response('تایپ پیام را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
