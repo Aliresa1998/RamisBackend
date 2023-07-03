@@ -17,7 +17,7 @@ urlpatterns = [
                   path('logout/', LogoutView.as_view(), name='account_logout'),
                   path('all_profile/', AllProfileView.as_view()),
                   path('send-message/', SendMessageAPIView.as_view(), name='send_message'),
-                  path('inbox/', InboxAPIView.as_view(), name='inbox'),
+                  path('inbox/<str:type>', InboxAPIView.as_view(), name='inbox'),
                   path('inbox/<int:id>', GetInboxByID.as_view(), name='inbox_by_id'),
                   path('admin/change-username/', AdminEditUserNameView.as_view(), name='admin-edit-username'),
                   path('admin/change-password/', AdminChangePassowrdView.as_view(), name='admin-change-password'),
