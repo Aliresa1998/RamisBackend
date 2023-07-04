@@ -42,7 +42,7 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'sender_id', 'recipient',
-                  'subject', 'body', 'created_at', 'is_read', 'send_all']
+                  'subject', 'body', 'created_at', 'send_all']
 
     def save(self, **kwargs):
         sender_id = self.context['sender_id']
@@ -53,7 +53,6 @@ class MessageSerializer(serializers.ModelSerializer):
                     recipient_id=recipient_id,
                     subject=self.validated_data['subject'],
                     body=self.validated_data['body'],
-                    is_read=self.validated_data['is_read'],
                     send_all=self.validated_data['send_all']
                 ) for recipient_id in list(User.objects.values_list('id', flat=True))
             ]
@@ -66,7 +65,6 @@ class MessageSerializer(serializers.ModelSerializer):
                     recipient_id=recipient_id,
                     subject=self.validated_data['subject'],
                     body=self.validated_data['body'],
-                    is_read=self.validated_data['is_read'],
                     send_all=self.validated_data['send_all']
                 ) for recipient_id in self.validated_data['recipient']
             ]
