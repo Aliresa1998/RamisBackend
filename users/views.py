@@ -16,7 +16,7 @@ from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
-    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer
 from .pagination import CustomPagination
@@ -83,15 +83,28 @@ class InboxAPIView(ListAPIView):
 
     def get_queryset(self):
         if self.kwargs['type'] == 'all':
-            Message.objects.filter(recipient=self.request.user).all()
+            return Message.objects.filter(recipient=self.request.user).all()
         elif self.kwargs['type'] == 'read':
-            Message.objects.filter(
+            return Message.objects.filter(
                 recipient=self.request.user).filter(is_read=True).all()
         elif self.kwargs['type'] == 'unread':
-            Message.objects.filter(recipient=self.request.user).filter(
+            return Message.objects.filter(recipient=self.request.user).filter(
                 is_read=False).all()
         else:
             return Response('تایپ پیام را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
+
+
+class MessageIsReadView(UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = IsReadMessageSerializer
+
+    def put(self, request, *args, **kwargs):
+        message = Message.objects.get(id=request.data['id'])
+        message.is_read = True
+        serializer = IsReadMessageSerializer(message, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminEditUserNameView(APIView):
@@ -182,12 +195,14 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
     def get_queryset(self):
         if self.kwargs['type'] == 'all':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
-        if self.kwargs['type'] == 'read':
+        elif self.kwargs['type'] == 'read':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
-            filter(is_read=True).all()
-        if self.kwargs['type'] == 'unread':
+                filter(is_read=True).all()
+        elif self.kwargs['type'] == 'unread':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
-            filter(is_read=False).all()
+                filter(is_read=False).all()
+        else:
+            return Response('تایپ تیکت را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminCreateTicketView(CreateAPIView):
