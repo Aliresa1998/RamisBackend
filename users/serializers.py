@@ -84,6 +84,13 @@ class InboxMessageSerializer(serializers.ModelSerializer):
                   'subject', 'body', 'created_at', 'is_read', 'send_all']
 
 
+class IsReadMessageSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+    class Meta:
+        model = Message
+        fields = ['id']
+
+
 class AdminEditUserNameSerializer(serializers.ModelSerializer):
     new_username = serializers.CharField(required=True)
 
