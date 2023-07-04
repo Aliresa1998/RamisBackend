@@ -97,6 +97,8 @@ class InboxAPIView(ListAPIView):
 class MessageIsReadView(UpdateAPIView):
     queryset = Message.objects.all()
     serializer_class = IsReadMessageSerializer
+    http_method_names = ['put']
+
 
     def put(self, request, *args, **kwargs):
         message = Message.objects.get(id=request.data['id'])
