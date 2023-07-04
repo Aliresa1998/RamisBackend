@@ -4,7 +4,7 @@ from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
 from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
-    AllProfileView, DocumentView, EditInformationView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
+    AllProfileView, DocumentView, EditInformationView, MessageIsReadView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
     GetTicketBYID, ProfilePictureUpdate, GetInboxByID
 
@@ -27,6 +27,7 @@ urlpatterns = [
                   path('ticket/<int:id>', GetTicketBYID.as_view(), name='ticket_by_id'),
                   path('close-ticket/', UserCloseTicketView.as_view(), name='close-ticket'),
                   path('isread-ticket/', TicketIsReadView.as_view(), name='isread-ticket'),
+                  path('isread-message/', MessageIsReadView.as_view(), name='isread-message'),
                   path('document/', DocumentView.as_view(), name='document'),
                   path('document/update/', ProfilePictureUpdate.as_view(),
                        name='profile_picture_update'),
