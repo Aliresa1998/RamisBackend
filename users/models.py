@@ -59,8 +59,7 @@ class Ticket(models.Model):
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True, null=True, blank=True)
-    # def __str__(self) -> str:
-    #     return self.subject
+
     class Meta:
         ordering = ['-created_at']
 
