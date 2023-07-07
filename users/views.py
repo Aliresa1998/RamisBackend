@@ -97,7 +97,6 @@ class MessageIsReadView(UpdateAPIView):
     serializer_class = IsReadMessageSerializer
     http_method_names = ['put']
 
-
     def put(self, request, *args, **kwargs):
         message = Message.objects.get(id=request.data['id'])
         message.is_read = True
@@ -268,8 +267,11 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class DocumentView(CreateAPIView):
+class DocumentView(CreateAPIView, ListAPIView):
     serializer_class = DocumentSerializer
+
+    def get_queryset(self):
+        return Document.objects.filter(user=self.request.user)
 
     def post(self, request, *args, **kwargs):
         (doc, created) = Document.objects.get_or_create(user_id=request.user.id)
