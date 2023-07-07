@@ -87,6 +87,7 @@ class UpdateHistoryTrade(UpdateAPIView):
             pk = kwargs['pk']
         except KeyError:
             return Response('کلید اصلی شما اشتباه است.', status=status.HTTP_400_BAD_REQUEST)
+        wallet_balance = Wallet.objects.get(user=self.request.user).balance
         symbol = Trade.objects.get(id=pk)
         exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
         exit_price = decimal.Decimal(exit_price)
@@ -94,8 +95,7 @@ class UpdateHistoryTrade(UpdateAPIView):
         pnl = (exit_price - trade.entry_price) * trade.amount
         Trade.objects.filter(pk=pk).update(
             pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
-        wallet_balance = Wallet.objects.get(user=self.request.user).balance
-        new_wallet_balance = wallet_balance + pnl
+        new_wallet_balance = wallet_balance + (exit_price*trade.amount)
         Wallet.objects.filter(user=self.request.user).update(
             balance=new_wallet_balance)
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
