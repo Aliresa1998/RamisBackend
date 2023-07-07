@@ -74,6 +74,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://51.89.247.248:8089',
     'http://panel.mycryptoprop.com',
+    'http://51.89.247.248:8085',
+    'http://51.89.247.248:9090',
 ]
 ROOT_URLCONF = 'RamisBackend.urls'
 
