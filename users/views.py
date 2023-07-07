@@ -55,7 +55,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             token = token
         except ValueError:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return redirect('http://51.89.247.248:8080/password-recovery/?uidb64=' + uid + '&token=' + token)
+        return redirect('http://51.89.247.248:8085/password-recovery/?uidb64=' + uid + '&token=' + token)
 
 
 class AllProfileView(ListAPIView):
@@ -90,8 +90,6 @@ class InboxAPIView(ListAPIView):
         elif self.kwargs['type'] == 'unread':
             return Message.objects.filter(recipient=self.request.user).filter(
                 is_read=False).all()
-        else:
-            return Response('تایپ پیام را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessageIsReadView(UpdateAPIView):
@@ -203,8 +201,6 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
         elif self.kwargs['type'] == 'unread':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
                 filter(is_read=False).all()
-        else:
-            return Response('تایپ تیکت را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminCreateTicketView(CreateAPIView):
@@ -287,7 +283,7 @@ class GetTicketBYID(ListAPIView):
     serializer_class = GetTicketSerializer
 
     def get_queryset(self, **kwargs):
-        return Ticket.objects.filter(id=self.kwargs['id'])
+        return Ticket.objects.filter(id=self.kwargs['id']).all()
 
 
 class ProfilePictureUpdate(UpdateAPIView):
