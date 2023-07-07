@@ -55,7 +55,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             token = token
         except ValueError:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return redirect('http://51.89.247.248:8080/password-recovery/?uidb64=' + uid + '&token=' + token)
+        return redirect('http://51.89.247.248:8085/password-recovery/?uidb64=' + uid + '&token=' + token)
 
 
 class AllProfileView(ListAPIView):
@@ -90,15 +90,12 @@ class InboxAPIView(ListAPIView):
         elif self.kwargs['type'] == 'unread':
             return Message.objects.filter(recipient=self.request.user).filter(
                 is_read=False).all()
-        else:
-            return Response('تایپ پیام را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessageIsReadView(UpdateAPIView):
     queryset = Message.objects.all()
     serializer_class = IsReadMessageSerializer
     http_method_names = ['put']
-
 
     def put(self, request, *args, **kwargs):
         message = Message.objects.get(id=request.data['id'])
@@ -203,8 +200,6 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
         elif self.kwargs['type'] == 'unread':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
                 filter(is_read=False).all()
-        else:
-            return Response('تایپ تیکت را اشتباه وارد کرده اید', status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminCreateTicketView(CreateAPIView):
@@ -272,8 +267,11 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class DocumentView(CreateAPIView):
+class DocumentView(CreateAPIView, ListAPIView):
     serializer_class = DocumentSerializer
+
+    def get_queryset(self):
+        return Document.objects.filter(user=self.request.user)
 
     def post(self, request, *args, **kwargs):
         (doc, created) = Document.objects.get_or_create(user_id=request.user.id)
@@ -287,7 +285,7 @@ class GetTicketBYID(ListAPIView):
     serializer_class = GetTicketSerializer
 
     def get_queryset(self, **kwargs):
-        return Ticket.objects.filter(id=self.kwargs['id'])
+        return Ticket.objects.filter(id=self.kwargs['id']).all()
 
 
 class ProfilePictureUpdate(UpdateAPIView):

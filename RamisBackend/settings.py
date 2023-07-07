@@ -74,6 +74,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://51.89.247.248:8089',
     'http://panel.mycryptoprop.com',
+    'http://51.89.247.248:8085',
+    'http://51.89.247.248:9090',
 ]
 ROOT_URLCONF = 'RamisBackend.urls'
 
@@ -198,7 +200,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = 'http://51.89.247.248:8080/confirm-email'
+LOGIN_URL = 'http://51.89.247.248:8085/confirm-email'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',
