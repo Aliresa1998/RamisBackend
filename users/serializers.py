@@ -28,12 +28,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         return data
 
 
+class DocumentSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Document
+        fields = ['user_id', 'profile_image', 'identity_card',
+                  'birth_certificate', 'Commitment_letter']
+
+
 class UserDetailsSerializer(BaseUserDetailsSerializer):
     profile = ProfileSerializer()
+    document = DocumentSerializer()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile']
+        fields = ['id', 'username', 'email', 'profile', 'document']
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -84,6 +94,7 @@ class InboxMessageSerializer(serializers.ModelSerializer):
 
 class IsReadMessageSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
+
     class Meta:
         model = Message
         fields = ['id']
@@ -285,15 +296,6 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
             return ticket
         except ValueError:
             raise serializers.ValidationError('ایدی تیکت درست نمیباشد')
-
-
-class DocumentSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = Document
-        fields = ['user_id', 'profile_image', 'identity_card',
-                  'birth_certificate', 'Commitment_letter']
 
 
 class UpdateImageSerializer(serializers.ModelSerializer):
