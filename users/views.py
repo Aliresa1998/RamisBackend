@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
-from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
+from django.views import View
+from django.http import HttpResponse
+from django.template.loader import get_template
+from dj_rest_auth.views import PasswordResetConfirmView
 from rest_framework import status, filters
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
@@ -11,7 +14,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
+from xhtml2pdf import pisa
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
@@ -307,3 +310,32 @@ class GetInboxByID(ListAPIView):
 
     def get_queryset(self, **kwargs):
         return Message.objects.filter(id=self.kwargs['id'])
+
+class ExportProfilesPDFView(View):
+    def get(self, request):
+        # Get all profiles
+        profiles = CustomUser.objects.all()
+
+        # Load the HTML template
+        template = get_template('users/profiles_report.html')  # Create this template file
+
+        # Prepare the context data
+        context = {
+            'profiles': profiles,
+        }
+
+        # Render the HTML template with the context data
+        html = template.render(context)
+
+        # Create a response object with PDF content
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="profiles.pdf"'
+
+        # Generate the PDF from the HTML content
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        if pisa_status.err:
+            return HttpResponse('Error generating PDF')
+
+        return response
+    
