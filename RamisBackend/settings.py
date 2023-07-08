@@ -146,6 +146,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+FONT_DIR = os.path.join(BASE_DIR, 'static', 'fonts')
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -211,3 +212,13 @@ SPECTACULAR_SETTINGS = {
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']
+WKHTMLTOPDF_PATH = os.environ.get('WKHTMLTOPDF_PATH', '/usr/bin/wkhtmltopdf')
+
+# Configure xhtml2pdf
+XHTML2PDF = {
+    'WKHTMLTOPDF_CMD': WKHTMLTOPDF_PATH,
+    'DEFAULT_FONT': 'font.ttf',  # Replace with the font file name
+    'DEFAULT_FONT_SIZE': 12,
+    'URI_INCLUDES': [],
+    'CSS_FILE': os.path.join(BASE_DIR, 'static', 'styles.css'),
+}
