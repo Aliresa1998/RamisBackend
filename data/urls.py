@@ -12,7 +12,8 @@ urlpatterns = [
     path("withdraw/", WithdrawWallet.as_view(), name='withdraw_wallet'),
     path('get-wallet/', GetWallet.as_view(), name='get_wallet'),
     path('wallet-history/', WalletHistoryView.as_view(), name='wallet-history'),
-    path('challange-upgrade/', UpgradeChallangeView.as_view(), name='upgrade-challange'),
+    path('challange-upgrade/', UpgradeChallangeView.as_view(),
+         name='upgrade-challange'),
     path('get-challange/', GetChallangeView.as_view(), name='get-challange'),
     path('account-growth/', AccountGrowthView.as_view(), name='account-growth'),
 ]
