@@ -1,14 +1,16 @@
 import decimal
 from datetime import datetime
 import yfinance as yf
-
+from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
-
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
@@ -78,6 +80,7 @@ class Historytrade(ListAPIView):
             return Trade.objects.filter(user=self.request.user).filter(direction='LONG').all()
         elif self.kwargs['type'] == 'all':
             return Trade.objects.filter(user=self.request.user).all()
+
 
 class UpdateHistoryTrade(UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -199,3 +202,5 @@ class AccountGrowthView(ListAPIView):
 
     def get_queryset(self):
         AccountGrowth.objects.filter(user=self.request.user).all()
+
+
