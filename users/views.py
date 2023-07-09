@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -107,7 +106,6 @@ class MessageIsReadView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
@@ -339,3 +337,9 @@ class ExportProfilesPDFView(View):
 
         return response
     
+class IsAdminView(ListAPIView):
+    def get(self, request, *args, **kwargs):
+        (user, created) = CustomUser.objects.get_or_create(user_id=request.user.id)
+        is_admin =  user.is_admin
+        return Response(is_admin, status=status.HTTP_200_OK)
+
