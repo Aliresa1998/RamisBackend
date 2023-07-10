@@ -1,7 +1,6 @@
-from contextlib import nullcontext
-from django.db.models import Model
+import datetime
 from rest_framework import serializers
-from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer as BaseUserDetailsSerializer
+from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from .models import CustomUser, Message, Ticket, User, Document
@@ -29,12 +28,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         return data
 
 
+class DocumentSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Document
+        fields = ['user_id', 'profile_image', 'identity_card',
+                  'birth_certificate', 'Commitment_letter']
+
+
 class UserDetailsSerializer(BaseUserDetailsSerializer):
     profile = ProfileSerializer()
+    document = DocumentSerializer()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile']
+        fields = ['id', 'username', 'email', 'profile', 'document']
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -43,7 +52,7 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'sender_id', 'recipient',
-                  'subject', 'body', 'created_at', 'is_read', 'send_all']
+                  'subject', 'body', 'created_at', 'send_all']
 
     def save(self, **kwargs):
         sender_id = self.context['sender_id']
@@ -54,7 +63,6 @@ class MessageSerializer(serializers.ModelSerializer):
                     recipient_id=recipient_id,
                     subject=self.validated_data['subject'],
                     body=self.validated_data['body'],
-                    is_read=self.validated_data['is_read'],
                     send_all=self.validated_data['send_all']
                 ) for recipient_id in list(User.objects.values_list('id', flat=True))
             ]
@@ -67,7 +75,6 @@ class MessageSerializer(serializers.ModelSerializer):
                     recipient_id=recipient_id,
                     subject=self.validated_data['subject'],
                     body=self.validated_data['body'],
-                    is_read=self.validated_data['is_read'],
                     send_all=self.validated_data['send_all']
                 ) for recipient_id in self.validated_data['recipient']
             ]
@@ -76,10 +83,21 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class InboxMessageSerializer(serializers.ModelSerializer):
+    sender = serializers.CharField()
+    recipient = serializers.CharField()
+
     class Meta:
         model = Message
-        fields = ['id', 'sender_id', 'recipient',
+        fields = ['id', 'sender', 'recipient',
                   'subject', 'body', 'created_at', 'is_read', 'send_all']
+
+
+class IsReadMessageSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Message
+        fields = ['id']
 
 
 class AdminEditUserNameSerializer(serializers.ModelSerializer):
@@ -127,10 +145,11 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
     body = serializers.ListField(read_only=True)
     message = serializers.CharField(required=True)
     image = serializers.ImageField(required=False)
+    subject = serializers.CharField(required=True)
 
     class Meta:
         model = Ticket
-        fields = ['body', 'message', 'image']
+        fields = ['body', 'subject', 'message', 'image']
 
     def save(self, **kwargs):
         try:
@@ -142,14 +161,15 @@ class UserCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], body=body, receiver='admin')
+            sender=self.context['user'], subject=self.validated_data['subject'], body=body, receiver='admin')
         return ticket
 
 
 class GetTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['id', 'body', 'status', 'receiver', 'is_read']
+        fields = ['id', 'subject', 'body', 'status', 'receiver',
+                  'is_read', 'created_at', 'last_modified']
 
 
 class TicketMessageSerializer(serializers.ModelSerializer):
@@ -175,7 +195,7 @@ class TicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False)
+                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد'
         except ValueError:
@@ -188,10 +208,11 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
     message = serializers.CharField(required=True)
     image = serializers.ImageField(required=False)
     receiver = serializers.CharField(required=True)
+    subject = serializers.CharField(required=True)
 
     class Meta:
         model = Ticket
-        fields = ['body', 'message', 'image', 'receiver']
+        fields = ['subject', 'body', 'message', 'image', 'receiver']
 
     def save(self, **kwargs):
         try:
@@ -203,7 +224,7 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], body=body, receiver=self.validated_data['receiver'])
+            sender=self.context['user'], subject=self.validated_data['subject'], body=body, receiver=self.validated_data['receiver'])
         return ticket
 
 
@@ -229,7 +250,7 @@ class AdminTicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False)
+                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
         except ValueError:
@@ -270,19 +291,11 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
 
     def save(self, **kwargs):
         try:
-            ticket = Ticket.objects.filter(id=self.validated_data['id']).update(is_read=True)
+            ticket = Ticket.objects.filter(
+                id=self.validated_data['id']).update(is_read=True)
             return ticket
         except ValueError:
             raise serializers.ValidationError('ایدی تیکت درست نمیباشد')
-
-
-class DocumentSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = Document
-        fields = ['user_id', 'profile_image', 'identity_card',
-                  'birth_certificate', 'Commitment_letter']
 
 
 class UpdateImageSerializer(serializers.ModelSerializer):

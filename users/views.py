@@ -1,9 +1,11 @@
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
-from dj_rest_auth.views import PasswordResetConfirmView, PasswordChangeView
+from django.views import View
+from django.http import HttpResponse
+from django.template.loader import get_template
+from dj_rest_auth.views import PasswordResetConfirmView
 from rest_framework import status, filters
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
@@ -11,12 +13,12 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
+from xhtml2pdf import pisa
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
-    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, MessageSerializer, ProfileSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer
 from .pagination import CustomPagination
@@ -55,7 +57,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             token = token
         except ValueError:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return redirect('http://51.89.247.248:8080/password-recovery/?uidb64=' + uid + '&token=' + token)
+        return redirect('http://51.89.247.248:8085/password-recovery/?uidb64=' + uid + '&token=' + token)
 
 
 class AllProfileView(ListAPIView):
@@ -82,10 +84,28 @@ class InboxAPIView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        message = Message.objects.filter(recipient=self.request.user)
-        message.is_read = True
-        return message
+        if self.kwargs['type'] == 'all':
+            return Message.objects.filter(recipient=self.request.user).all()
+        elif self.kwargs['type'] == 'read':
+            return Message.objects.filter(
+                recipient=self.request.user).filter(is_read=True).all()
+        elif self.kwargs['type'] == 'unread':
+            return Message.objects.filter(recipient=self.request.user).filter(
+                is_read=False).all()
 
+
+class MessageIsReadView(UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = IsReadMessageSerializer
+    http_method_names = ['put']
+
+    def put(self, request, *args, **kwargs):
+        message = Message.objects.get(id=request.data['id'])
+        message.is_read = True
+        serializer = IsReadMessageSerializer(message, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
@@ -173,7 +193,14 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
         return {'user': self.request.user}
 
     def get_queryset(self):
-        return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+        if self.kwargs['type'] == 'all':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
+        elif self.kwargs['type'] == 'read':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+                filter(is_read=True).all()
+        elif self.kwargs['type'] == 'unread':
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+                filter(is_read=False).all()
 
 
 class AdminCreateTicketView(CreateAPIView):
@@ -241,8 +268,11 @@ class TicketIsReadView(UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class DocumentView(CreateAPIView):
+class DocumentView(CreateAPIView, ListAPIView):
     serializer_class = DocumentSerializer
+
+    def get_queryset(self):
+        return Document.objects.filter(user=self.request.user)
 
     def post(self, request, *args, **kwargs):
         (doc, created) = Document.objects.get_or_create(user_id=request.user.id)
@@ -256,7 +286,7 @@ class GetTicketBYID(ListAPIView):
     serializer_class = GetTicketSerializer
 
     def get_queryset(self, **kwargs):
-        return Ticket.objects.filter(id=self.kwargs['id'])
+        return Ticket.objects.filter(id=self.kwargs['id']).all()
 
 
 class ProfilePictureUpdate(UpdateAPIView):
@@ -278,3 +308,38 @@ class GetInboxByID(ListAPIView):
 
     def get_queryset(self, **kwargs):
         return Message.objects.filter(id=self.kwargs['id'])
+
+class ExportProfilesPDFView(View):
+    def get(self, request):
+        # Get all profiles
+        profiles = CustomUser.objects.all()
+
+        # Load the HTML template
+        template = get_template('users/profiles_report.html')  # Create this template file
+
+        # Prepare the context data
+        context = {
+            'profiles': profiles,
+        }
+
+        # Render the HTML template with the context data
+        html = template.render(context)
+
+        # Create a response object with PDF content
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="profiles.pdf"'
+
+        # Generate the PDF from the HTML content
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        if pisa_status.err:
+            return HttpResponse('Error generating PDF')
+
+        return response
+    
+class IsAdminView(ListAPIView):
+    def get(self, request, *args, **kwargs):
+        (user, created) = CustomUser.objects.get_or_create(user_id=request.user.id)
+        is_admin =  user.is_admin
+        return Response(is_admin, status=status.HTTP_200_OK)
+

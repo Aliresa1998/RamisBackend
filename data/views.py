@@ -1,22 +1,26 @@
 import decimal
 from datetime import datetime
 import yfinance as yf
-
+from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
-
-from users.permissions import AdminAccessPermission
-
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
 
+from users.permissions import AdminAccessPermission
+from users.pagination import CustomPagination
 
 # Create your views here.
+
+
 class OhlcData(APIView):
     authentication_classes = []
     permission_classes = []
@@ -67,10 +71,15 @@ class CreateTrade(CreateAPIView):
 class Historytrade(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = HistorySerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
-        return Trade.objects.filter(user=self.request.user)
+        if self.kwargs['type'] == 'short':
+            return Trade.objects.filter(user=self.request.user).filter(direction='SHORT').all()
+        elif self.kwargs['type'] == 'long':
+            return Trade.objects.filter(user=self.request.user).filter(direction='LONG').all()
+        elif self.kwargs['type'] == 'all':
+            return Trade.objects.filter(user=self.request.user).all()
 
 
 class UpdateHistoryTrade(UpdateAPIView):
@@ -81,6 +90,7 @@ class UpdateHistoryTrade(UpdateAPIView):
             pk = kwargs['pk']
         except KeyError:
             return Response('کلید اصلی شما اشتباه است.', status=status.HTTP_400_BAD_REQUEST)
+        wallet_balance = Wallet.objects.get(user=self.request.user).balance
         symbol = Trade.objects.get(id=pk)
         exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
         exit_price = decimal.Decimal(exit_price)
@@ -88,8 +98,7 @@ class UpdateHistoryTrade(UpdateAPIView):
         pnl = (exit_price - trade.entry_price) * trade.amount
         Trade.objects.filter(pk=pk).update(
             pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
-        wallet_balance = Wallet.objects.get(user=self.request.user).balance
-        new_wallet_balance = wallet_balance + pnl
+        new_wallet_balance = wallet_balance + (exit_price*trade.amount)
         Wallet.objects.filter(user=self.request.user).update(
             balance=new_wallet_balance)
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
@@ -151,7 +160,7 @@ class GetWallet(RetrieveAPIView):
 
 class WalletHistoryView(ListAPIView):
     serializer_class = WalletHistorySerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         return WalletHistory.objects.filter(user=self.request.user)
@@ -193,3 +202,5 @@ class AccountGrowthView(ListAPIView):
 
     def get_queryset(self):
         AccountGrowth.objects.filter(user=self.request.user).all()
+
+

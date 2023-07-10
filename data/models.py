@@ -35,7 +35,9 @@ class Trade(models.Model):
         max_digits=20, decimal_places=2, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
     close_time = models.DateTimeField(null=True, blank=True)
-
+    
+    class Meta:
+        ordering = ['-time']
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
