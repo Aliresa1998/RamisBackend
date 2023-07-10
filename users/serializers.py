@@ -195,7 +195,8 @@ class TicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
+                    id=self.validated_data['id']).update(body=body, is_read=False,
+                                                         last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد'
         except ValueError:
@@ -224,7 +225,8 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], subject=self.validated_data['subject'], body=body, receiver=self.validated_data['receiver'])
+            sender=self.context['user'], subject=self.validated_data['subject'], body=body,
+            receiver=self.validated_data['receiver'])
         return ticket
 
 
@@ -250,7 +252,8 @@ class AdminTicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
+                    id=self.validated_data['id']).update(body=body, is_read=False,
+                                                         last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
         except ValueError:
@@ -301,4 +304,4 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
 class UpdateImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ['profile_image']
+        fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
