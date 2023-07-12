@@ -4,9 +4,10 @@ from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
 from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
-    AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
+    AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, \
+    SendMessageAPIView, InboxAPIView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
-    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView
+    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -35,6 +36,7 @@ urlpatterns = [
                   path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
+                  path('unread/<str:type>', Unread.as_view(), name='unread'),
                   path('is-admin/', IsAdminView.as_view(), name='is-admin'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
