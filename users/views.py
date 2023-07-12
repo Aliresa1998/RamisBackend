@@ -18,7 +18,8 @@ from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
-    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, ProfileSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
+    ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer
 from .pagination import CustomPagination
@@ -106,6 +107,7 @@ class MessageIsReadView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
@@ -196,10 +198,10 @@ class UserTicketMessageView(CreateAPIView, ListAPIView):
         if self.kwargs['type'] == 'all':
             return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).all()
         elif self.kwargs['type'] == 'read':
-            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)). \
                 filter(is_read=True).all()
         elif self.kwargs['type'] == 'unread':
-            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)).\
+            return Ticket.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user.username)). \
                 filter(is_read=False).all()
 
 
@@ -309,6 +311,7 @@ class GetInboxByID(ListAPIView):
     def get_queryset(self, **kwargs):
         return Message.objects.filter(id=self.kwargs['id'])
 
+
 class ExportProfilesPDFView(View):
     def get(self, request):
         # Get all profiles
@@ -336,10 +339,23 @@ class ExportProfilesPDFView(View):
             return HttpResponse('Error generating PDF')
 
         return response
-    
+
+
 class IsAdminView(ListAPIView):
     def get(self, request, *args, **kwargs):
         (user, created) = CustomUser.objects.get_or_create(user_id=request.user.id)
-        is_admin =  user.is_admin
+        is_admin = user.is_admin
         return Response(is_admin, status=status.HTTP_200_OK)
 
+
+class Unread(APIView):
+    def get(self, request, *args, **kwargs):
+
+        if self.kwargs['type'] == "massage":
+            massage = Message.objects.filter(is_read=False)
+            return Response(massage.count(), status=status.HTTP_200_OK)
+        elif self.kwargs['type'] == "ticket":
+            ticket = Ticket.objects.filter(is_read=False)
+            return Response(ticket.count(), status=status.HTTP_200_OK)
+        else:
+            return Response("نوع پیام انتخابی درست نمیباشد", status=status.HTTP_400_BAD_REQUEST)
