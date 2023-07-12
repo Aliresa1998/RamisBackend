@@ -75,3 +75,9 @@ class Document(models.Model):
         validators=[validate_image_size], null=True, blank=True)
     Commitment_letter = models.ImageField(
         validators=[validate_image_size], null=True, blank=True)
+
+
+class Plan(models.Model):
+    plan_choice = (('1', "پلن ۱"), ('2', "پلن ۲"), ('3', "پلن ۳"))
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    plan = models.CharField(max_length=255, choices=plan_choice)

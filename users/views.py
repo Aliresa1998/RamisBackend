@@ -15,14 +15,15 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa
 from users.permissions import AdminAccessPermission
-from .models import CustomUser, Document, Message, Ticket
+from .models import CustomUser, Document, Message, Ticket, Plan
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
     ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
-    UserDetailsSerializer, UpdateImageSerializer
+    UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer
 from .pagination import CustomPagination
+from data.models import Wallet
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -359,3 +360,42 @@ class Unread(APIView):
             return Response(ticket.count(), status=status.HTTP_200_OK)
         else:
             return Response("نوع پیام انتخابی درست نمیباشد", status=status.HTTP_400_BAD_REQUEST)
+
+
+class PlanView(CreateAPIView, UpdateAPIView):
+    serializer_class = PlanSerializer
+
+    def post(self, request, *args, **kwargs):
+        (doc, created) = Plan.objects.get_or_create(user=request.user, plan=request.data["plan"])
+        serializer = PlanSerializer(doc, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        if request.data["plan"] == "1":
+            wallet = Wallet.objects.get(user_id=request.user.id)
+            wallet_balance = wallet.balance + 10000
+            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
+        elif request.data["plan"] == "2":
+            wallet = Wallet.objects.get(user_id=request.user.id)
+            wallet_balance = wallet.balance + 20000
+            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
+        elif request.data["plan"] == "3":
+            wallet = Wallet.objects.get(user_id=request.user.id)
+            wallet_balance = wallet.balance + 30000
+            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
+        else:
+            return Response("پلن انتخابی شما اشتباه میباشد", status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetPlan(ListAPIView):
+    serializer_class = GetPlansSerializer
+
+    def get_queryset(self):
+        return Plan.objects.filter(user=self.request.user)
+
+
+class GetDocumentById(ListAPIView):
+    serializer_class = GetDocumentSerializer
+
+    def get_queryset(self):
+        return Document.objects.filter(user=self.kwargs["user"])

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from .models import CustomUser, Message, Ticket, User, Document
+from .models import CustomUser, Message, Ticket, User, Document, Plan
 from dj_rest_auth.serializers import PasswordChangeSerializer
 
 User = get_user_model()
@@ -305,3 +305,22 @@ class UpdateImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan', ]
+
+
+class GetPlansSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = '__all__'
+
+
+class GetDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['user_id', 'profile_image', 'identity_card',
+                  'birth_certificate', 'Commitment_letter']
