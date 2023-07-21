@@ -10,14 +10,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa
 from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket
-from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
-    AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
+from .serializers import AdminAllRequestSerializer, AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
+    AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, AdminUserPlanSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer
@@ -106,6 +106,7 @@ class MessageIsReadView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class AdminEditUserNameView(APIView):
     permission_classes = [AdminAccessPermission]
@@ -309,13 +310,15 @@ class GetInboxByID(ListAPIView):
     def get_queryset(self, **kwargs):
         return Message.objects.filter(id=self.kwargs['id'])
 
+
 class ExportProfilesPDFView(View):
     def get(self, request):
         # Get all profiles
         profiles = CustomUser.objects.all()
 
         # Load the HTML template
-        template = get_template('users/profiles_report.html')  # Create this template file
+        # Create this template file
+        template = get_template('users/profiles_report.html')
 
         # Prepare the context data
         context = {
@@ -336,10 +339,38 @@ class ExportProfilesPDFView(View):
             return HttpResponse('Error generating PDF')
 
         return response
-    
+
+
 class IsAdminView(ListAPIView):
     def get(self, request, *args, **kwargs):
         (user, created) = CustomUser.objects.get_or_create(user_id=request.user.id)
-        is_admin =  user.is_admin
+        is_admin = user.is_admin
         return Response(is_admin, status=status.HTTP_200_OK)
 
+
+class AdminAllPlanView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = AdminUserPlanSerializer
+    permission_classes = [AdminAccessPermission]
+
+
+class AdminSinglePlanView(RetrieveAPIView):
+    serializer_class = AdminUserPlanSerializer
+    permission_classes = [AdminAccessPermission]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.kwargs['pk'])
+
+
+class AdminAllTransactionView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = AdminAllRequestSerializer
+    permission_classes = [AdminAccessPermission]
+
+
+class AdminSingleTransactionView(RetrieveAPIView):
+    serializer_class = AdminAllRequestSerializer
+    permission_classes = [AdminAccessPermission]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.kwargs['pk'])
