@@ -3,7 +3,7 @@ from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, Confi
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
+from .views import AdminAllPlanView, AdminAllTransactionView, AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminSinglePlanView, AdminTicketMessageView, \
     AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
     GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView
@@ -36,6 +36,10 @@ urlpatterns = [
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
                   path('is-admin/', IsAdminView.as_view(), name='is-admin'),
+                  path('admin-all-plan/', AdminAllPlanView.as_view(), name='admin-all-plan'),
+                  path('admin-all-plan/<int:pk>/', AdminSinglePlanView.as_view(), name='admin-single-plan'),
+                  path('admin-all-transaction/', AdminAllTransactionView.as_view(), name='admin-all-transaction'),
+                  path('admin-all-transaction/<int:pk>/', AdminAllTransactionView.as_view(), name='admin-all-transaction'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',
