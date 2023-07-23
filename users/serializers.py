@@ -347,7 +347,7 @@ class AdminAllRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'profile', 'document', 'wallet_history')
-        fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
+        # fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
 
 
 class PlanSerializer(serializers.ModelSerializer):

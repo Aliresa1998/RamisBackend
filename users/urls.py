@@ -7,7 +7,7 @@ from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTic
     AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, \
     SendMessageAPIView, InboxAPIView,AdminAllPlanView, AdminAllTransactionView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
-    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById
+    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById, AdminSinglePlanView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
