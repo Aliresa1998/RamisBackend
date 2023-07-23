@@ -3,10 +3,11 @@ from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, Confi
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
-from .views import AdminAllPlanView, AdminAllTransactionView, AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminSinglePlanView, AdminTicketMessageView, \
-    AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, SendMessageAPIView, InboxAPIView, \
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
+    AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, \
+    SendMessageAPIView, InboxAPIView,AdminAllPlanView, AdminAllTransactionView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
-    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView
+    GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -35,6 +36,10 @@ urlpatterns = [
                   path('admin/ticket/', AdminTicketMessageView.as_view(), name='admin-ticket'),
                   path('admin/create-ticket/', AdminCreateTicketView.as_view(), name='admin-create-ticket'),
                   path('admin/status-ticket/', AdminCloseTicketView.as_view(), name='admin-close/open-ticket'),
+                  path('unread/<str:type>', Unread.as_view(), name='unread'),
+                  path('plan', PlanView.as_view(), name='plan'),
+                  path('getplan', GetPlan.as_view(), name='get_plan'),
+                  path("getdocument/<str:user>", GetDocumentById.as_view(), name='get_document'),
                   path('is-admin/', IsAdminView.as_view(), name='is-admin'),
                   path('admin-all-plan/', AdminAllPlanView.as_view(), name='admin-all-plan'),
                   path('admin-all-plan/<int:pk>/', AdminSinglePlanView.as_view(), name='admin-single-plan'),

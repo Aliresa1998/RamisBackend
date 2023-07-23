@@ -3,11 +3,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
+from .models import CustomUser, Message, Ticket, User, Document, Plan
 from dj_rest_auth.serializers import PasswordChangeSerializer
 from data.models import WalletHistory
 from data.serializers import ChallangeSerializer, GetWalletSerializer, HistorySerializer, WalletHistorySerializer
-from .models import CustomUser, Message, Ticket, User, Document
-
 User = get_user_model()
 
 
@@ -197,7 +196,8 @@ class TicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
+                    id=self.validated_data['id']).update(body=body, is_read=False,
+                                                         last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد'
         except ValueError:
@@ -226,7 +226,8 @@ class AdminCreateTicketSerializer(serializers.ModelSerializer):
         body = list()
         body.append(message)
         ticket = Ticket.objects.create(
-            sender=self.context['user'], subject=self.validated_data['subject'], body=body, receiver=self.validated_data['receiver'])
+            sender=self.context['user'], subject=self.validated_data['subject'], body=body,
+            receiver=self.validated_data['receiver'])
         return ticket
 
 
@@ -252,7 +253,8 @@ class AdminTicketMessageSerializer(serializers.ModelSerializer):
                 body = ticket.body
                 body.append(message)
                 ticket = Ticket.objects.filter(
-                    id=self.validated_data['id']).update(body=body, is_read=False, last_modified=datetime.datetime.now())
+                    id=self.validated_data['id']).update(body=body, is_read=False,
+                                                         last_modified=datetime.datetime.now())
                 return ticket
             return 'تیکت بسته میباشد برای استفاده دوباره میتوانید آن را باز کنید'
         except ValueError:
@@ -345,3 +347,23 @@ class AdminAllRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'profile', 'document', 'wallet_history')
+        fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan', ]
+
+
+class GetPlansSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = '__all__'
+
+
+class GetDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['user_id', 'profile_image', 'identity_card',
+                  'birth_certificate', 'Commitment_letter']
