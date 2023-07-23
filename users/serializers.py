@@ -1,11 +1,12 @@
 import datetime
-from rest_framework import serializers
-from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from rest_framework import serializers
+from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
 from .models import CustomUser, Message, Ticket, User, Document, Plan
 from dj_rest_auth.serializers import PasswordChangeSerializer
-
+from data.models import WalletHistory
+from data.serializers import ChallangeSerializer, GetWalletSerializer, HistorySerializer, WalletHistorySerializer
 User = get_user_model()
 
 
@@ -304,6 +305,48 @@ class TicketIsReadSerializer(serializers.ModelSerializer):
 class UpdateImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
+        fields = ['profile_image']
+
+
+class SimpleProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('first_name', 'last_name')
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['profile_image']
+
+
+class AdminUserPlanSerializer(serializers.ModelSerializer):
+    profile = SimpleProfileSerializer()
+    document = ProfileImageSerializer()
+    challange = ChallangeSerializer()
+    trades = HistorySerializer(many=True)
+    wallet = GetWalletSerializer()
+
+    class Meta:
+        model = User
+        fields = ('id', 'profile', 'document',
+                  'wallet',  'challange', 'trades')
+
+
+class SimpleWallerHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WalletHistory
+        fields = ('created', 'amount', 'transaction', 'wallet_destination')
+
+
+class AdminAllRequestSerializer(serializers.ModelSerializer):
+    profile = SimpleProfileSerializer()
+    document = ProfileImageSerializer()
+    wallet_history = SimpleWallerHistorySerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'profile', 'document', 'wallet_history')
         fields = ['profile_image', 'identity_card', 'birth_certificate', 'Commitment_letter']
 
 
