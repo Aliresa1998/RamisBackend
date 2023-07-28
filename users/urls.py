@@ -8,7 +8,7 @@ from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTic
     SendMessageAPIView, InboxAPIView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
     GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById, \
-    PlanVerifyView
+    PlanVerifyView, DetailPlanView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -43,6 +43,7 @@ urlpatterns = [
                   path("planverifyview/", PlanVerifyView.as_view(), name='verify_view'),
                   path("getdocument/<str:user>", GetDocumentById.as_view(), name='get_document'),
                   path('is-admin/', IsAdminView.as_view(), name='is-admin'),
+                  path('detail_plan/<int:id>', DetailPlanView.as_view(), name='detail_plan'),
                   path('verify-email/',
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',
