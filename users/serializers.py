@@ -326,3 +326,15 @@ class GetDocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = ['user_id', 'profile_image', 'identity_card',
                   'birth_certificate', 'Commitment_letter']
+
+
+class DeletePlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['is_delete']
+
+
+class DetailPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan', "amount"]
