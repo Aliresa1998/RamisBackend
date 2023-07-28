@@ -81,3 +81,4 @@ class Document(models.Model):
 class Plan(models.Model):
     plan = models.CharField(max_length=255)
     amount = models.IntegerField(default=0)
+    is_delete = models.BooleanField(default=False)
