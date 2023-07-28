@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa
@@ -21,7 +21,8 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
     ProfileSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
-    UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer
+    UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
+    DeletePlanSerializer, DetailPlanSerializer
 from .pagination import CustomPagination
 from django.urls import reverse
 from azbankgateways import bankfactories, models as bank_models, default_settings as settings
@@ -459,3 +460,37 @@ class PlanVerifyView(APIView):
                 return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
         else:
             return HttpResponse('Transaction failed or canceled by user')
+
+
+class DetailPlanView(UpdateAPIView):
+    def get_serializer_class(self):
+        if self.request.method == 'delete':
+            return DeletePlanSerializer
+        return DetailPlanSerializer
+
+    def put(self, request, *args, **kwargs):
+        try:
+            amount = self.request.data.get('amount')
+            plan = self.request.data.get('plan')
+
+            if plan is None:
+                plan_instance = Plan.objects.filter(id=self.kwargs['id']).first()
+                plan_instance.amount = amount
+                plan_instance.save()
+            else:
+                plan_instance = Plan.objects.filter(id=self.kwargs['id']).first()
+                plan_instance.plan = plan
+                plan_instance.amount = amount
+                plan_instance.save()
+
+            data = DetailPlanSerializer(plan_instance)
+            return Response(data.data, status=status.HTTP_200_OK)
+
+        except Plan.DoesNotExist:
+            return Response("Plan not found", status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, *args, **kwargs):
+        Plan.objects.filter(id=self.kwargs['id']).update(is_delete=True)
+        return Response(status=status.HTTP_200_OK)
