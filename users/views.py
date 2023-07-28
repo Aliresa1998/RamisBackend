@@ -403,7 +403,7 @@ class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user)
+        return Plan.objects.filter(user=self.request.user, is_delete=False)
 
 
 class GetDocumentById(ListAPIView):
