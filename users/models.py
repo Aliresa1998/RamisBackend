@@ -25,6 +25,7 @@ class CustomUser(models.Model):
     is_admin = models.BooleanField(default=False)
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='profile')
+    plan = models.OneToOneField("Plan", on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Message(models.Model):
@@ -78,6 +79,6 @@ class Document(models.Model):
 
 
 class Plan(models.Model):
-    plan_choice = (('1', "پلن ۱"), ('2', "پلن ۲"), ('3', "پلن ۳"))
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    plan = models.CharField(max_length=255, choices=plan_choice)
+    plan = models.CharField(max_length=255)
+    amount = models.IntegerField(default=0)
+    is_delete = models.BooleanField(default=False)

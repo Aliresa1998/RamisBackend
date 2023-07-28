@@ -351,9 +351,11 @@ class AdminAllRequestSerializer(serializers.ModelSerializer):
 
 
 class PlanSerializer(serializers.ModelSerializer):
+    plan_id = serializers.IntegerField(required=True)
+
     class Meta:
         model = Plan
-        fields = ['plan', ]
+        fields = ['plan_id']
 
 
 class GetPlansSerializer(serializers.ModelSerializer):
@@ -367,3 +369,15 @@ class GetDocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = ['user_id', 'profile_image', 'identity_card',
                   'birth_certificate', 'Commitment_letter']
+
+
+class DeletePlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['is_delete']
+
+
+class DetailPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan', "amount"]

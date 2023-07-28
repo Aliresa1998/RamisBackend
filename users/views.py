@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa
@@ -21,9 +21,16 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
     ProfileSerializer, AdminUserPlanSerializer,AdminAllRequestSerializer,\
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
-    UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer
+    UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
+    DeletePlanSerializer, DetailPlanSerializer
 from .pagination import CustomPagination
+from django.urls import reverse
+from azbankgateways import bankfactories, models as bank_models, default_settings as settings
+from azbankgateways.exceptions import AZBankGatewaysException
 from data.models import Wallet
+from django.conf import settings
+import requests
+import json
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -389,36 +396,41 @@ class Unread(APIView):
             return Response("نوع پیام انتخابی درست نمیباشد", status=status.HTTP_400_BAD_REQUEST)
 
 
-class PlanView(CreateAPIView, UpdateAPIView):
+class PlanView(APIView):
     serializer_class = PlanSerializer
 
     def post(self, request, *args, **kwargs):
-        (doc, created) = Plan.objects.get_or_create(user=request.user, plan=request.data["plan"])
-        serializer = PlanSerializer(doc, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        if request.data["plan"] == "1":
-            wallet = Wallet.objects.get(user_id=request.user.id)
-            wallet_balance = wallet.balance + 10000
-            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
-        elif request.data["plan"] == "2":
-            wallet = Wallet.objects.get(user_id=request.user.id)
-            wallet_balance = wallet.balance + 20000
-            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
-        elif request.data["plan"] == "3":
-            wallet = Wallet.objects.get(user_id=request.user.id)
-            wallet_balance = wallet.balance + 30000
-            Wallet.objects.filter(user_id=request.user.id).update(balance=wallet_balance)
+        plan = Plan.objects.get(id=self.request.data['plan_id'])
+        request.session[f'{self.request.user}'] = {
+            'amount': plan.amount,
+            'plan_id': plan.id
+        }
+        amount = plan.amount
+        req_data = {
+            "merchant_id": MERCHANT,
+            "amount": amount,
+            "callback_url": CallbackURL,
+            "description": description,
+        }
+        req_header = {"accept": "application/json",
+                      "content-type": "application/json'"}
+        req = requests.post(url=ZP_API_REQUEST, data=json.dumps(
+            req_data), headers=req_header)
+        authority = req.json()['data']['authority']
+        if len(req.json()['errors']) == 0:
+            return Response(ZP_API_STARTPAY.format(authority=authority))
+
         else:
-            return Response("پلن انتخابی شما اشتباه میباشد", status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            e_code = req.json()['errors']['code']
+            e_message = req.json()['errors']['message']
+            return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
 
 
 class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user)
+        return Plan.objects.filter(user=self.request.user, is_delete=False)
 
 
 class GetDocumentById(ListAPIView):
@@ -426,3 +438,86 @@ class GetDocumentById(ListAPIView):
 
     def get_queryset(self):
         return Document.objects.filter(user=self.kwargs["user"])
+
+
+MERCHANT = "7243cd2f-d798-40ef-bf12-82eb05c79454"
+ZP_API_REQUEST = "https://api.zarinpal.com/pg/v4/payment/request.json"
+ZP_API_VERIFY = "https://api.zarinpal.com/pg/v4/payment/verify.json"
+ZP_API_STARTPAY = "https://www.zarinpal.com/pg/StartPay/{authority}"
+description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"
+CallbackURL = 'http://127.0.0.1:8000/users/planverifyview/'
+
+
+class PlanVerifyView(APIView):
+
+    def get(self, request):
+        data = request.session[f'{self.request.user}']
+        t_status = request.GET.get('Status')
+        t_authority = request.GET['Authority']
+        if request.GET.get('Status') == 'OK':
+            req_header = {"accept": "application/json",
+                          "content-type": "application/json'"}
+            req_data = {
+                "merchant_id": MERCHANT,
+                "amount": data['amount'],
+                "authority": t_authority
+            }
+            req = requests.post(url=ZP_API_VERIFY, data=json.dumps(req_data), headers=req_header)
+            if len(req.json()['errors']) == 0:
+                t_status = req.json()['data']['code']
+                if t_status == 100:
+                    CustomUser.objects.filter(user=self.request.user).update(plan=data['plan_id'])
+                    walet = Wallet.objects.get(user=self.request.user)
+                    new_balance = walet.balance + data['amount']
+                    Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
+                    return HttpResponse('Transaction success.\nRefID: ' + str(
+                        req.json()['data']['ref_id']
+                    ))
+                elif t_status == 101:
+                    return HttpResponse('Transaction submitted : ' + str(
+                        req.json()['data']['message']
+                    ))
+                else:
+                    return HttpResponse('Transaction failed.\nStatus: ' + str(
+                        req.json()['data']['message']
+                    ))
+            else:
+                e_code = req.json()['errors']['code']
+                e_message = req.json()['errors']['message']
+                return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
+        else:
+            return HttpResponse('Transaction failed or canceled by user')
+
+
+class DetailPlanView(UpdateAPIView):
+    def get_serializer_class(self):
+        if self.request.method == 'delete':
+            return DeletePlanSerializer
+        return DetailPlanSerializer
+
+    def put(self, request, *args, **kwargs):
+        try:
+            amount = self.request.data.get('amount')
+            plan = self.request.data.get('plan')
+
+            if plan is None:
+                plan_instance = Plan.objects.filter(id=self.kwargs['id']).first()
+                plan_instance.amount = amount
+                plan_instance.save()
+            else:
+                plan_instance = Plan.objects.filter(id=self.kwargs['id']).first()
+                plan_instance.plan = plan
+                plan_instance.amount = amount
+                plan_instance.save()
+
+            data = DetailPlanSerializer(plan_instance)
+            return Response(data.data, status=status.HTTP_200_OK)
+
+        except Plan.DoesNotExist:
+            return Response("Plan not found", status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, *args, **kwargs):
+        Plan.objects.filter(id=self.kwargs['id']).update(is_delete=True)
+        return Response(status=status.HTTP_200_OK)

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'data',
     'celery',
     'django_celery_beat',
+    'azbankgateways',
 ]
 
 MIDDLEWARE = [
