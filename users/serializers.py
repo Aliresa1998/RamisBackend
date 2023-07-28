@@ -308,9 +308,11 @@ class UpdateImageSerializer(serializers.ModelSerializer):
 
 
 class PlanSerializer(serializers.ModelSerializer):
+    plan_id = serializers.IntegerField(required=True)
+
     class Meta:
         model = Plan
-        fields = ['plan', ]
+        fields = ['plan_id']
 
 
 class GetPlansSerializer(serializers.ModelSerializer):
