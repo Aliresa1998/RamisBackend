@@ -19,7 +19,7 @@ TRANSACTION_CHOICES = (
 
 
 class Trade(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trades')
     symbol = models.CharField(max_length=20)
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
@@ -40,12 +40,12 @@ class Trade(models.Model):
         ordering = ['-time']
 
 class Wallet(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
     balance = models.IntegerField(default=0)
 
 
 class WalletHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wallet_history')
     created = models.DateTimeField(auto_now=True)
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
@@ -59,7 +59,7 @@ class Challange(models.Model):
         ('2', 'Level Two'),
         ('3', 'Level Three'),
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='challange')
     challange_level = models.CharField(
         max_length=1, choices=LEVEL_CHOICES, default='1')
 
