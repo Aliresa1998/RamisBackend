@@ -7,6 +7,7 @@ from .models import CustomUser, Message, Ticket, User, Document, Plan
 from dj_rest_auth.serializers import PasswordChangeSerializer
 from data.models import WalletHistory
 from data.serializers import ChallangeSerializer, GetWalletSerializer, HistorySerializer, WalletHistorySerializer
+
 User = get_user_model()
 
 
@@ -330,7 +331,7 @@ class AdminUserPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'profile', 'document',
-                  'wallet',  'challange', 'trades')
+                  'wallet', 'challange', 'trades')
 
 
 class SimpleWallerHistorySerializer(serializers.ModelSerializer):
@@ -360,8 +361,8 @@ class PlanSerializer(serializers.ModelSerializer):
 
 class GetPlansSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Plan
-        fields = '__all__'
+        model = CustomUser
+        fields = ["plan"]
 
 
 class GetDocumentSerializer(serializers.ModelSerializer):
