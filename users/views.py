@@ -19,7 +19,7 @@ from .models import CustomUser, Document, Message, Ticket, Plan
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
-    ProfileSerializer, AdminUserPlanSerializer,AdminAllRequestSerializer,\
+    ProfileSerializer, AdminUserPlanSerializer, AdminAllRequestSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
     DeletePlanSerializer, DetailPlanSerializer
@@ -383,6 +383,8 @@ class AdminSingleTransactionView(RetrieveAPIView):
 
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
+
+
 class Unread(APIView):
     def get(self, request, *args, **kwargs):
 
@@ -523,7 +525,7 @@ class DetailPlanView(UpdateAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class CretePlan(CreateAPIView):
+class CreatePlanView(CreateAPIView):
     permission_classes = [IsAuthenticated, AdminAccessPermission]
     serializer_class = DetailPlanSerializer
     queryset = Plan.objects.all()
