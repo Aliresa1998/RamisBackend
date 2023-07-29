@@ -432,7 +432,7 @@ class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user, is_delete=False)
+        return Plan.objects.filter(user=self.request.user)
 
 
 class GetDocumentById(ListAPIView):
@@ -472,17 +472,21 @@ class PlanVerifyView(APIView):
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-                    return HttpResponse('Transaction success.\nRefID: ' + str(
-                        req.json()['data']['ref_id']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=success",
+                                    data='Transaction success.\nRefID: ' + str(
+                                        req.json()['data']['ref_id']
+                                    ))
                 elif t_status == 101:
-                    return HttpResponse('Transaction submitted : ' + str(
-                        req.json()['data']['message']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=submitted",
+                                    data='Transaction submitted : ' + str(
+                                        req.json()['data']['message']
+                                    ))
                 else:
-                    return HttpResponse('Transaction failed.\nStatus: ' + str(
-                        req.json()['data']['message']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=submitted",
+                                    data='Transaction failed.\nStatus: ' + str(
+                                        req.json()['data']['message']
+                                    ))
+
             else:
                 e_code = req.json()['errors']['code']
                 e_message = req.json()['errors']['message']
