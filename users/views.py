@@ -494,3 +494,9 @@ class DetailPlanView(UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         Plan.objects.filter(id=self.kwargs['id']).update(is_delete=True)
         return Response(status=status.HTTP_200_OK)
+
+
+class CretePlan(CreateAPIView):
+    permission_classes = [IsAuthenticated, AdminAccessPermission]
+    serializer_class = DetailPlanSerializer
+    queryset = Plan.objects.all()
