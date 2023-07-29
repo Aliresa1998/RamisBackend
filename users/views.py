@@ -482,7 +482,7 @@ class PlanVerifyView(APIView):
                                         req.json()['data']['message']
                                     ))
                 else:
-                    return redirect(to="http://176.31.82.47/payment?status=submitted",
+                    return redirect(to="http://176.31.82.47/payment?status=failed",
                                     data='Transaction failed.\nStatus: ' + str(
                                         req.json()['data']['message']
                                     ))
