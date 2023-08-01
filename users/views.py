@@ -533,3 +533,12 @@ class CreatePlanView(CreateAPIView):
     permission_classes = [IsAuthenticated, AdminAccessPermission]
     serializer_class = DetailPlanSerializer
     queryset = Plan.objects.all()
+
+
+class UserHavePlanView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        if CustomUser.objects.get(user=self.request.user).plan:
+            return Response({"detail": True})
+        else:
+            return Response({"detail": False})
