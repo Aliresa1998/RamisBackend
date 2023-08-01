@@ -78,6 +78,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://51.89.247.248:8085',
     'http://51.89.247.248:9090',
     'http://176.31.82.47:8582',
+    'http://176.31.82.47',
 ]
 ROOT_URLCONF = 'RamisBackend.urls'
 
