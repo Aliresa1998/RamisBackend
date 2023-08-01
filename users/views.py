@@ -19,7 +19,7 @@ from .models import CustomUser, Document, Message, Ticket, Plan
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
-    ProfileSerializer, AdminUserPlanSerializer,AdminAllRequestSerializer,\
+    ProfileSerializer, AdminUserPlanSerializer, AdminAllRequestSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
     DeletePlanSerializer, DetailPlanSerializer
@@ -383,6 +383,8 @@ class AdminSingleTransactionView(RetrieveAPIView):
 
     def get_queryset(self):
         return User.objects.filter(id=self.kwargs['pk'])
+
+
 class Unread(APIView):
     def get(self, request, *args, **kwargs):
 
@@ -430,7 +432,7 @@ class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user, is_delete=False)
+        return Plan.objects.filter(user=self.request.user)
 
 
 class GetDocumentById(ListAPIView):
@@ -470,17 +472,21 @@ class PlanVerifyView(APIView):
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-                    return HttpResponse('Transaction success.\nRefID: ' + str(
-                        req.json()['data']['ref_id']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=success",
+                                    data='Transaction success.\nRefID: ' + str(
+                                        req.json()['data']['ref_id']
+                                    ))
                 elif t_status == 101:
-                    return HttpResponse('Transaction submitted : ' + str(
-                        req.json()['data']['message']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=submitted",
+                                    data='Transaction submitted : ' + str(
+                                        req.json()['data']['message']
+                                    ))
                 else:
-                    return HttpResponse('Transaction failed.\nStatus: ' + str(
-                        req.json()['data']['message']
-                    ))
+                    return redirect(to="http://176.31.82.47/payment?status=failed",
+                                    data='Transaction failed.\nStatus: ' + str(
+                                        req.json()['data']['message']
+                                    ))
+
             else:
                 e_code = req.json()['errors']['code']
                 e_message = req.json()['errors']['message']
@@ -521,3 +527,18 @@ class DetailPlanView(UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         Plan.objects.filter(id=self.kwargs['id']).update(is_delete=True)
         return Response(status=status.HTTP_200_OK)
+
+
+class CreatePlanView(CreateAPIView):
+    permission_classes = [IsAuthenticated, AdminAccessPermission]
+    serializer_class = DetailPlanSerializer
+    queryset = Plan.objects.all()
+
+
+class UserHavePlanView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        if CustomUser.objects.get(user=self.request.user).plan:
+            return Response({"detail": True})
+        else:
+            return Response({"detail": False})
