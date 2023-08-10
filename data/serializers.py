@@ -20,7 +20,7 @@ class CryptoSerializer(serializers.ModelSerializer):
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ["user_id", "symbol", "direction",
+        fields = ["leverage", "user_id", "symbol", "direction",
                   "amount", "stop_loss", "take_profit"]
 
     def create(self, validated_data):
@@ -38,7 +38,7 @@ class TradeSerializer(serializers.ModelSerializer):
             'amount') * decimal.Decimal(validated_data.get('entry_price'))
         wallet = Wallet.objects.get(user=self.context['user'])
         wallet_balance = wallet.balance
-        if wallet_balance-total_cost < 0:
+        if wallet_balance - total_cost < 0:
             raise serializers.ValidationError('موجودی شما کافی نمیباشد')
         else:
             if stop_loss == 0 or take_profit == 0:
