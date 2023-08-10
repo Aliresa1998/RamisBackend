@@ -35,9 +35,11 @@ class Trade(models.Model):
         max_digits=20, decimal_places=2, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
     close_time = models.DateTimeField(null=True, blank=True)
-    
+    leverage = models.IntegerField(default=1)
+
     class Meta:
         ordering = ['-time']
+
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
@@ -50,8 +52,10 @@ class WalletHistory(models.Model):
     amount = models.IntegerField()
     transaction = models.CharField(max_length=10, choices=TRANSACTION_CHOICES)
     wallet_destination = models.CharField(max_length=300, null=True, blank=True)
+
     class Meta:
         ordering = ['-created']
+
 
 class Challange(models.Model):
     LEVEL_CHOICES = (
