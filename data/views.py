@@ -11,12 +11,14 @@ from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, R
 from rest_framework.pagination import PageNumberPagination
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, WalletHistorySerializer, ChallangeSerializer, \
+from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, \
+    WalletHistorySerializer, ChallangeSerializer, \
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
 
 from users.permissions import AdminAccessPermission
 from users.pagination import CustomPagination
+
 
 # Create your views here.
 
@@ -85,7 +87,7 @@ class Historytrade(ListAPIView):
 class UpdateHistoryTrade(UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
-    def put(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs, ):
         try:
             pk = kwargs['pk']
         except KeyError:
@@ -95,10 +97,16 @@ class UpdateHistoryTrade(UpdateAPIView):
         exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
         exit_price = decimal.Decimal(exit_price)
         trade = Trade.objects.get(pk=pk)
-        pnl = (exit_price - trade.entry_price) * trade.amount
+        pnl = ((exit_price - trade.entry_price) * trade.amount) * trade.leverage
+        res_balance = wallet_balance - pnl
+        if res_balance <= 0:
+            Trade.objects.filter(pk=pk).update(
+                pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
+            Wallet.objects.filter(user=self.request.user).update(balance=0)
+            return Response("موجودی حساب شما صفر شد شما کال مارجین خوردید")
         Trade.objects.filter(pk=pk).update(
             pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
-        new_wallet_balance = wallet_balance + (exit_price*trade.amount)
+        new_wallet_balance = wallet_balance + (exit_price * trade.amount)
         Wallet.objects.filter(user=self.request.user).update(
             balance=new_wallet_balance)
         return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
@@ -142,7 +150,8 @@ class WithdrawWallet(UpdateAPIView):
                 user=self.request.user)
             res_data = UpdateWalletSerializer(wallet)
             WalletHistory.objects.create(user_id=self.request.user.id, transaction="WITHDRAW",
-                                         amount=self.request.data["balance"], wallet_destination=self.request.data['widthdraw_destination'])
+                                         amount=self.request.data["balance"],
+                                         wallet_destination=self.request.data['widthdraw_destination'])
             return Response(data=res_data.data, status=status.HTTP_200_OK)
 
 
@@ -202,5 +211,3 @@ class AccountGrowthView(ListAPIView):
 
     def get_queryset(self):
         AccountGrowth.objects.filter(user=self.request.user).all()
-
-
