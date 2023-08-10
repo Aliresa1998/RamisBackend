@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-gquaqrf2oj0izp#necaa^y9$d+^wy7z=w!xqu=uo_-53aitgb!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost','176.31.82.46']
+ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost','176.31.82.46','back.mycryptoprop.com']
 
 # Application definition
 
@@ -74,6 +74,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:8000',
     'http://51.89.247.248:8089',
+    'https://panel.mycryptoprop.com',
     'http://panel.mycryptoprop.com',
     'http://51.89.247.248:8085',
     'http://51.89.247.248:9090',
@@ -204,7 +205,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = 'http://51.89.247.248:8085/confirm-email'
+LOGIN_URL = 'http://panel.mycryptoprop.com/confirm-email'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',

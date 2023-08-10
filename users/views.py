@@ -66,7 +66,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             token = token
         except ValueError:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return redirect('http://51.89.247.248:8085/password-recovery/?uidb64=' + uid + '&token=' + token)
+        return redirect('http://panel.mycryptoprop.com/password-recovery/?uidb64=' + uid + '&token=' + token)
 
 
 class AllProfileView(ListAPIView):
@@ -472,17 +472,17 @@ class PlanVerifyView(APIView):
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-                    return redirect(to="http://176.31.82.47/payment?status=success",
+                    return redirect(to="http://panel.mycryptoprop.com/payment?status=success",
                                     data='Transaction success.\nRefID: ' + str(
                                         req.json()['data']['ref_id']
                                     ))
                 elif t_status == 101:
-                    return redirect(to="http://176.31.82.47/payment?status=submitted",
+                    return redirect(to="http://panel.mycryptoprop.com/payment?status=submitted",
                                     data='Transaction submitted : ' + str(
                                         req.json()['data']['message']
                                     ))
                 else:
-                    return redirect(to="http://176.31.82.47/payment?status=failed",
+                    return redirect(to="http://panel.mycryptoprop.com/payment?status=failed",
                                     data='Transaction failed.\nStatus: ' + str(
                                         req.json()['data']['message']
                                     ))
