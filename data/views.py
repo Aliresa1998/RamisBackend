@@ -98,7 +98,7 @@ class UpdateHistoryTrade(UpdateAPIView):
         exit_price = decimal.Decimal(exit_price)
         trade = Trade.objects.get(pk=pk)
         pnl = ((exit_price - trade.entry_price) * trade.amount) * trade.leverage
-        res_balance = wallet_balance - pnl
+        res_balance = wallet_balance + pnl
         if res_balance <= 0:
             Trade.objects.filter(pk=pk).update(
                 pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
