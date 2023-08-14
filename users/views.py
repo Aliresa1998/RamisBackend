@@ -126,7 +126,7 @@ class AdminEditUserNameView(APIView):
             old_username = request.data['username']
             new_username = self.request.data['new_username']
         except KeyError:
-            return Response({"detail:""لطفا نام کاربری مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"لطفا نام کاربری مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
         if str(old_username) == str(new_username):
             return Response({"detail":"نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید."},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -166,7 +166,7 @@ class EditInformationView(UpdateAPIView):
         except KeyError:
             try:
                 if str(request.data['new_username']) == str(user.username):
-                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.',
+                    return Response({'detail':'نام کاربری قبلی با نام کاربری فعلی برابر میباشد.'},
                                     status=status.HTTP_400_BAD_REQUEST)
                 elif str(request.data['new_username']) != str(user.username):
                     User.objects.filter(username=user).update(
@@ -264,7 +264,7 @@ class AdminCloseTicketView(UpdateAPIView):
                 id=serializer.data['id']).update(status=serializer.data['status'])
             return Response({'detail':f'تیکت {ticket_status} شد'}, status=status.HTTP_200_OK)
         except:
-            return Response({'detail:f'آیدی تیکت درست نمیباشد.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail':'آیدی تیکت درست نمیباشد.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TicketIsReadView(UpdateAPIView):
@@ -395,7 +395,7 @@ class Unread(APIView):
             ticket = Ticket.objects.filter(is_read=False)
             return Response(ticket.count(), status=status.HTTP_200_OK)
         else:
-            return Response("نوع پیام انتخابی درست نمیباشد", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"نوع پیام انتخابی درست نمیباشد"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PlanView(APIView):
