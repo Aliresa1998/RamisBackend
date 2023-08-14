@@ -126,13 +126,13 @@ class AdminEditUserNameView(APIView):
             old_username = request.data['username']
             new_username = self.request.data['new_username']
         except KeyError:
-            return Response("لطفا نام کاربری مورد نظر را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail:""لطفا نام کاربری مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
         if str(old_username) == str(new_username):
-            return Response("نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید.",
+            return Response({"detail":"نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید."},
                             status=status.HTTP_400_BAD_REQUEST)
         User.objects.filter(username=old_username).update(
             username=new_username)
-        return Response("نام کاربری با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
+        return Response({"detail":"نام کاربری با موفقیت تغییر کرد."}, status=status.HTTP_200_OK)
 
 
 class AdminChangePassowrdView(UpdateAPIView):
@@ -143,10 +143,10 @@ class AdminChangePassowrdView(UpdateAPIView):
         try:
             user = User.objects.get(username=request.data['username'])
         except KeyError:
-            return Response("لطفا آیدی کاربر مورد نظر را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"لطفا آیدی کاربر مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
         user.set_password(request.data['new_password'])
         user.save()
-        return Response('رمز عبور کاربر با موفقیت تغییر کرد', status=status.HTTP_200_OK)
+        return Response({'detail':'رمز عبور کاربر با موفقیت تغییر کرد'}, status=status.HTTP_200_OK)
 
 
 class EditInformationView(UpdateAPIView):
@@ -156,12 +156,12 @@ class EditInformationView(UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         user = User.objects.get(username=request.user)
         if not request.data:
-            return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail':'تمامی فیلد ها خالی میباشند'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and \
                     request.data['new_password2']:
-                return Response(
-                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.',
+                return Response( {'detail':
+                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.'},
                     status=status.HTTP_400_BAD_REQUEST)
         except KeyError:
             try:
@@ -171,7 +171,7 @@ class EditInformationView(UpdateAPIView):
                 elif str(request.data['new_username']) != str(user.username):
                     User.objects.filter(username=user).update(
                         username=request.data['new_username'])
-                    return Response('نام کاربری با موفقیت تغییر کرد.', status=status.HTTP_200_OK)
+                    return Response({'detail':'نام کاربری با موفقیت تغییر کرد.'}, status=status.HTTP_200_OK)
             except KeyError:
                 if request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
                     password = EditInformationSerializer(
@@ -179,7 +179,7 @@ class EditInformationView(UpdateAPIView):
                     password.is_valid(raise_exception=True)
                     user.set_password(password.data['new_password1'])
                     user.save()
-                    return Response('رمز عبور شما با موفقیت تغییر کرد', status=status.HTTP_200_OK)
+                    return Response({'detail':'رمز عبور شما با موفقیت تغییر کرد'}, status=status.HTTP_200_OK)
 
 
 class UserCreateTicketView(CreateAPIView):
@@ -246,7 +246,7 @@ class UserCloseTicketView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         Ticket.objects.filter(
             id=serializer.data['id']).update(status='Close')
-        return Response('تیکت بسته شد', status=status.HTTP_200_OK)
+        return Response({'detail':'تیکت بسته شد'}, status=status.HTTP_200_OK)
 
 
 class AdminCloseTicketView(UpdateAPIView):
@@ -262,9 +262,9 @@ class AdminCloseTicketView(UpdateAPIView):
         try:
             Ticket.objects.filter(
                 id=serializer.data['id']).update(status=serializer.data['status'])
-            return Response(f'تیکت {ticket_status} شد', status=status.HTTP_200_OK)
+            return Response({'detail':f'تیکت {ticket_status} شد'}, status=status.HTTP_200_OK)
         except:
-            return Response(f'آیدی تیکت درست نمیباشد.', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail:f'آیدی تیکت درست نمیباشد.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TicketIsReadView(UpdateAPIView):
