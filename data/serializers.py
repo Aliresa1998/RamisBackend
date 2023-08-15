@@ -1,6 +1,6 @@
 import decimal
 from rest_framework import serializers, status
-from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
+from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order
 import yfinance as yf
 from rest_framework.response import Response
 
@@ -121,3 +121,11 @@ class AccountGrowthSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountGrowth
         fields = ['balance', 'date']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['user', 'order_type', 'price', 'quantity', 'symbol']
