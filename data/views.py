@@ -13,8 +13,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from .serializers import AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, HistorySerializer, \
     WalletHistorySerializer, ChallangeSerializer, \
-    UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer
-from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory
+    UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer, OrderSerializer
+from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order
 
 from users.permissions import AdminAccessPermission
 from users.pagination import CustomPagination
@@ -211,3 +211,60 @@ class AccountGrowthView(ListAPIView):
 
     def get_queryset(self):
         AccountGrowth.objects.filter(user=self.request.user).all()
+
+
+class PlaceOrderView(CreateAPIView):
+    permission_classes = []
+    serializer_class = OrderSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            order_type = self.request.data['order_type']
+            symbol = self.request.data['symbol']
+            price = self.request.data['price']
+
+            exit_price = float(yf.Ticker(symbol).history()['Close'][-1])
+
+            if order_type == 'BUY_LIMIT' and price > exit_price:
+                return Response({
+                    "error": "When registering a Buy Limit order, the currency amount must be lower than the current price."},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            elif order_type == 'BUY_STOP' and price < exit_price:
+                return Response({
+                    "error": "When registering a buy stop order, the currency amount must be higher than the current price."},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            elif order_type == 'SELL_LIMIT' and price < exit_price:
+                return Response({
+                    "error": "When registering a sell limit order, the currency amount must be higher than the current price."},
+                    status=status.HTTP_400_BAD_REQUEST)
+            elif order_type == "SELL_STOP" and price > exit_price:
+                return Response({
+                    "error": "When registering a Sell Stop order, the currency amount must be lower than the current price"})
+            else:
+                (doc, created) = Order.objects.get_or_create(user=request.user, order_type=order_type, price=price,
+                                                             quantity=self.request.data['quantity'], symbol=symbol)
+                serializer = OrderSerializer(doc, data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        except KeyError:
+            return Response({"error": "Required data is missing."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        except ValueError:
+            return Response({"error": "Invalid data format or value."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"error": "An error occurred: " + str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetOrder(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
