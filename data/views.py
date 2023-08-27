@@ -268,3 +268,16 @@ class GetOrder(ListAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
+
+
+class DeleteOrder(APIView):
+    permission_classes = []
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs["order_id"]
+        order = Order.objects.filter(id=id, is_delete=False)
+        if not order:
+            return Response({"error": "سفارش مورد نظر یافت نشد."})
+        else:
+            order.update(is_delete=True)
+            return Response({"condition": "سفارش شما با موفقیت حذف شد"}, status=status.HTTP_200_OK)
