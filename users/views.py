@@ -473,19 +473,19 @@ class PlanVerifyView(APIView):
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
 
-                    return redirect(to="http://panel.mycryptoprop.com/payment?status=success",
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=success",
                                     data='Transaction success.\nRefID: ' + str(
                                         req.json()['data']['ref_id']
                                     ))
                 elif t_status == 101:
 
-                    return redirect(to="http://panel.mycryptoprop.com/payment?status=submitted",
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=submitted",
                                     data='Transaction submitted : ' + str(
                                         req.json()['data']['message']
                                     ))
                 else:
 
-                    return redirect(to="http://panel.mycryptoprop.com/payment?status=failed",
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=failed",
                                     data='Transaction failed.\nStatus: ' + str(
                                         req.json()['data']['message']
                                     ))

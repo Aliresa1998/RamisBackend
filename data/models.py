@@ -88,3 +88,4 @@ class Order(models.Model):
     symbol = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     is_done = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)

@@ -207,7 +207,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = 'http://panel.mycryptoprop.com/confirm-email'
+LOGIN_URL = 'https://panel.mycryptoprop.com/confirm-email'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',
