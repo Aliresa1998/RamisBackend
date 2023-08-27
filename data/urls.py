@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import AccountGrowthView, GetChallangeView, UpgradeChallangeView, OhlcData, CryptoList, CreateTrade, \
     Historytrade, UpdateHistoryTrade, CreateWallet, WalletHistoryView, WithdrawWallet, \
-    GetWallet, PlaceOrderView, GetOrder
+    GetWallet, PlaceOrderView, GetOrder, DeleteOrder
 
 urlpatterns = [
     path('data/', OhlcData.as_view(), name='data'),
@@ -19,4 +19,5 @@ urlpatterns = [
     path('account-growth/', AccountGrowthView.as_view(), name='account-growth'),
     path('place-order/', PlaceOrderView.as_view(), name='place-order'),
     path('get-order/', GetOrder.as_view(), name='get-order'),
+    path('delete-order/<int:order_id>', DeleteOrder.as_view(), name='delete')
 ]
