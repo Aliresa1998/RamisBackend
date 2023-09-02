@@ -225,26 +225,26 @@ class PlaceOrderView(CreateAPIView):
 
             exit_price = float(yf.Ticker(symbol).history()['Close'][-1])
 
-            if order_type == 'BUY_LIMIT' and price > exit_price:
+            if order_type == 'BUY_LIMIT' and float(price) > exit_price:
                 return Response({
                     "error": "When registering a Buy Limit order, the currency amount must be lower than the current price."},
                     status=status.HTTP_400_BAD_REQUEST)
 
-            elif order_type == 'BUY_STOP' and price < exit_price:
+            elif order_type == 'BUY_STOP' and float(price) < exit_price:
                 return Response({
                     "error": "When registering a buy stop order, the currency amount must be higher than the current price."},
                     status=status.HTTP_400_BAD_REQUEST)
 
-            elif order_type == 'SELL_LIMIT' and price < exit_price:
+            elif order_type == 'SELL_LIMIT' and float(price) < exit_price:
                 return Response({
                     "error": "When registering a sell limit order, the currency amount must be higher than the current price."},
                     status=status.HTTP_400_BAD_REQUEST)
-            elif order_type == "SELL_STOP" and price > exit_price:
+            elif order_type == "SELL_STOP" and float(price) > exit_price:
                 return Response({
                     "error": "When registering a Sell Stop order, the currency amount must be lower than the current price"})
             else:
                 (doc, created) = Order.objects.get_or_create(user=request.user, order_type=order_type, price=price,
-                                                             quantity=self.request.data['quantity'], symbol=symbol)
+                                                             amount=self.request.data['amount'], symbol=symbol)
                 serializer = OrderSerializer(doc, data=request.data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
