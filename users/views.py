@@ -18,7 +18,7 @@ from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket, Plan
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
-    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, PlanListSerializer, \
     ProfileSerializer, AdminUserPlanSerializer, AdminAllRequestSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
@@ -432,7 +432,8 @@ class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user)
+        customuser=CustomUser.objects.get(user=self.request.user)
+        return Plan.objects.filter(customuser=customuser)
 
 
 class GetDocumentById(ListAPIView):
@@ -544,3 +545,7 @@ class UserHavePlanView(APIView):
             return Response({"detail": True})
         else:
             return Response({"detail": False})
+class AllPlanListView(ListAPIView):
+    queryset = Plan.objects.all()
+    serializer_class = PlanListSerializer
+    permission_classes = [IsAuthenticated]
