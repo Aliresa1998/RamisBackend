@@ -3,7 +3,7 @@ from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, Confi
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllPlanListView, \
     AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, \
     SendMessageAPIView, InboxAPIView, AdminAllPlanView, AdminAllTransactionView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
@@ -40,11 +40,12 @@ urlpatterns = [
                   path('unread/<str:type>', Unread.as_view(), name='unread'),
                   path('create-plan/', CreatePlanView.as_view(), name='create-create'),
                   path('plan', PlanView.as_view(), name='go_to_gateway_view'),
-                  path('getplan', GetPlan.as_view(), name='get_plan'),
+                  path('my-plan/', GetPlan.as_view(), name='get_plan'),
                   path('have-plan/', UserHavePlanView.as_view(), name='have_plan'),
                   path("planverifyview/", PlanVerifyView.as_view(), name='verify_view'),
                   path("getdocument/<str:user>", GetDocumentById.as_view(), name='get_document'),
                   path('is-admin/', IsAdminView.as_view(), name='is-admin'),
+                  path('plan-list/', AllPlanListView.as_view(), name='get-list-of-all-plan'),
                   path('detail_plan/<int:id>', DetailPlanView.as_view(), name='detail_plan'),
                   path('admin-all-plan/', AdminAllPlanView.as_view(), name='admin-all-plan'),
                   path('admin-all-plan/<int:pk>/', AdminSinglePlanView.as_view(), name='admin-single-plan'),
