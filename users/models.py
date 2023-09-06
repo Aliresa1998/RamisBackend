@@ -9,6 +9,15 @@ from numpy import identity
 from users.validators import validate_image_size
 
 
+class Plan(models.Model):
+    plan = models.CharField(max_length=255)
+    amount = models.IntegerField(default=0)
+    is_delete = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.plan
+
+
 class CustomUser(models.Model):
     first_name = models.CharField(max_length=200, null=True, blank=True)
     last_name = models.CharField(max_length=200, null=True, blank=True)
@@ -25,7 +34,8 @@ class CustomUser(models.Model):
     is_admin = models.BooleanField(default=False)
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='profile')
-    plan = models.OneToOneField("Plan", on_delete=models.CASCADE, null=True, blank=True)
+    plan = models.OneToOneField(
+        Plan, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Message(models.Model):
@@ -76,9 +86,3 @@ class Document(models.Model):
         validators=[validate_image_size], null=True, blank=True)
     Commitment_letter = models.ImageField(
         validators=[validate_image_size], null=True, blank=True)
-
-
-class Plan(models.Model):
-    plan = models.CharField(max_length=255)
-    amount = models.IntegerField(default=0)
-    is_delete = models.BooleanField(default=False)
