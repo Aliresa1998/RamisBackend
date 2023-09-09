@@ -46,7 +46,7 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
-            user_id=request.user.id, email=self.request.user.email)
+            user_id=request.user.id)
         if request.method == 'GET':
             serializer = ProfileSerializer(
                 customuser, context={'email': self.request.user.email})
