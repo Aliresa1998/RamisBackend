@@ -461,7 +461,7 @@ class PlanVerifyView(APIView):
         data = request.session[f'{self.request.user}']
         t_status = request.GET.get('Status')
         t_authority = request.GET['Authority']
-        plan = Plan.objects.filter(id='plan_id').first()
+        plan = Plan.objects.filter(id=data['plan_id']).first()
         custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
         custom_user.plan = plan
         custom_user.save()
