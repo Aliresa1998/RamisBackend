@@ -461,6 +461,10 @@ class PlanVerifyView(APIView):
         data = request.session[f'{self.request.user}']
         t_status = request.GET.get('Status')
         t_authority = request.GET['Authority']
+        plan = Plan.objects.filter(id='plan_id').first()
+        custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
+        custom_user.plan = plan
+        custom_user.save()
         if request.GET.get('Status') == 'OK':
             req_header = {"accept": "application/json",
                           "content-type": "application/json'"}
@@ -473,9 +477,9 @@ class PlanVerifyView(APIView):
             if len(req.json()['errors']) == 0:
                 t_status = req.json()['data']['code']
                 if t_status == 100:
+                    plan = Plan.objects.filter(id='plan_id').first()
                     custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
-                    custom_user.plan = data['plan_id']
-                    custom_user.save()
+                    custom_user.plan = plan
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
