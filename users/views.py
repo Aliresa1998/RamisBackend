@@ -473,7 +473,9 @@ class PlanVerifyView(APIView):
             if len(req.json()['errors']) == 0:
                 t_status = req.json()['data']['code']
                 if t_status == 100:
-                    CustomUser.objects.filter(user=self.request.user).update(plan=data['plan_id'])
+                    custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
+                    custom_user.plan = data['plan_id']
+                    custom_user.save()
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
