@@ -430,7 +430,7 @@ class PlanView(APIView):
 
 class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
-
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         customuser=CustomUser.objects.get(user=self.request.user)
         return Plan.objects.filter(customuser=customuser)
