@@ -18,7 +18,7 @@ from users.permissions import AdminAccessPermission
 from .models import CustomUser, Document, Message, Ticket, Plan
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
-    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
+    EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, PlanListSerializer, \
     ProfileSerializer, AdminUserPlanSerializer, AdminAllRequestSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
@@ -46,7 +46,7 @@ class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     @action(detail=False, methods=['GET', 'PUT'])
     def profile(self, request):
         (customuser, created) = CustomUser.objects.get_or_create(
-            user_id=request.user.id, email=self.request.user.email)
+            user_id=request.user.id)
         if request.method == 'GET':
             serializer = ProfileSerializer(
                 customuser, context={'email': self.request.user.email})
@@ -126,13 +126,13 @@ class AdminEditUserNameView(APIView):
             old_username = request.data['username']
             new_username = self.request.data['new_username']
         except KeyError:
-            return Response("لطفا نام کاربری مورد نظر را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"لطفا نام کاربری مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
         if str(old_username) == str(new_username):
-            return Response("نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید.",
+            return Response({"detail":"نام کاربری جدید با نام کابربری قبلی برابر است لطفا نام کابری جدید کنید."},
                             status=status.HTTP_400_BAD_REQUEST)
         User.objects.filter(username=old_username).update(
             username=new_username)
-        return Response("نام کاربری با موفقیت تغییر کرد.", status=status.HTTP_200_OK)
+        return Response({"detail":"نام کاربری با موفقیت تغییر کرد."}, status=status.HTTP_200_OK)
 
 
 class AdminChangePassowrdView(UpdateAPIView):
@@ -143,10 +143,10 @@ class AdminChangePassowrdView(UpdateAPIView):
         try:
             user = User.objects.get(username=request.data['username'])
         except KeyError:
-            return Response("لطفا آیدی کاربر مورد نظر را به درستی وارد کنید.", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"لطفا آیدی کاربر مورد نظر را به درستی وارد کنید."}, status=status.HTTP_400_BAD_REQUEST)
         user.set_password(request.data['new_password'])
         user.save()
-        return Response('رمز عبور کاربر با موفقیت تغییر کرد', status=status.HTTP_200_OK)
+        return Response({'detail':'رمز عبور کاربر با موفقیت تغییر کرد'}, status=status.HTTP_200_OK)
 
 
 class EditInformationView(UpdateAPIView):
@@ -156,22 +156,22 @@ class EditInformationView(UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         user = User.objects.get(username=request.user)
         if not request.data:
-            return Response('تمامی فیلد ها خالی میباشند', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail':'تمامی فیلد ها خالی میباشند'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             if request.data['new_username'] and request.data['old_password'] and request.data['new_password1'] and \
                     request.data['new_password2']:
-                return Response(
-                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.',
+                return Response( {'detail':
+                    'برای تغییر نام کاربری تنها فیلد مربوط به نام کاربری را پر کنید و برای تغییر رمز عبور تنها فیلد های مربوط به رمز عبور را پر کنید.'},
                     status=status.HTTP_400_BAD_REQUEST)
         except KeyError:
             try:
                 if str(request.data['new_username']) == str(user.username):
-                    return Response('نام کاربری قبلی با نام کاربری فعلی برابر میباشد.',
+                    return Response({'detail':'نام کاربری قبلی با نام کاربری فعلی برابر میباشد.'},
                                     status=status.HTTP_400_BAD_REQUEST)
                 elif str(request.data['new_username']) != str(user.username):
                     User.objects.filter(username=user).update(
                         username=request.data['new_username'])
-                    return Response('نام کاربری با موفقیت تغییر کرد.', status=status.HTTP_200_OK)
+                    return Response({'detail':'نام کاربری با موفقیت تغییر کرد.'}, status=status.HTTP_200_OK)
             except KeyError:
                 if request.data['old_password'] and request.data['new_password1'] and request.data['new_password2']:
                     password = EditInformationSerializer(
@@ -179,7 +179,7 @@ class EditInformationView(UpdateAPIView):
                     password.is_valid(raise_exception=True)
                     user.set_password(password.data['new_password1'])
                     user.save()
-                    return Response('رمز عبور شما با موفقیت تغییر کرد', status=status.HTTP_200_OK)
+                    return Response({'detail':'رمز عبور شما با موفقیت تغییر کرد'}, status=status.HTTP_200_OK)
 
 
 class UserCreateTicketView(CreateAPIView):
@@ -246,7 +246,7 @@ class UserCloseTicketView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         Ticket.objects.filter(
             id=serializer.data['id']).update(status='Close')
-        return Response('تیکت بسته شد', status=status.HTTP_200_OK)
+        return Response({'detail':'تیکت بسته شد'}, status=status.HTTP_200_OK)
 
 
 class AdminCloseTicketView(UpdateAPIView):
@@ -262,9 +262,9 @@ class AdminCloseTicketView(UpdateAPIView):
         try:
             Ticket.objects.filter(
                 id=serializer.data['id']).update(status=serializer.data['status'])
-            return Response(f'تیکت {ticket_status} شد', status=status.HTTP_200_OK)
+            return Response({'detail':f'تیکت {ticket_status} شد'}, status=status.HTTP_200_OK)
         except:
-            return Response(f'آیدی تیکت درست نمیباشد.', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail':'آیدی تیکت درست نمیباشد.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TicketIsReadView(UpdateAPIView):
@@ -395,7 +395,7 @@ class Unread(APIView):
             ticket = Ticket.objects.filter(is_read=False)
             return Response(ticket.count(), status=status.HTTP_200_OK)
         else:
-            return Response("نوع پیام انتخابی درست نمیباشد", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"نوع پیام انتخابی درست نمیباشد"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PlanView(APIView):
@@ -432,7 +432,8 @@ class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
 
     def get_queryset(self):
-        return Plan.objects.filter(user=self.request.user)
+        customuser=CustomUser.objects.get(user=self.request.user)
+        return Plan.objects.filter(customuser=customuser)
 
 
 class GetDocumentById(ListAPIView):
@@ -447,8 +448,7 @@ ZP_API_REQUEST = "https://api.zarinpal.com/pg/v4/payment/request.json"
 ZP_API_VERIFY = "https://api.zarinpal.com/pg/v4/payment/verify.json"
 ZP_API_STARTPAY = "https://www.zarinpal.com/pg/StartPay/{authority}"
 description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"
-CallbackURL = 'http://127.0.0.1:8000/users/planverifyview/'
-
+CallbackURL = 'https://back.mycryptoprop.com/users/planverifyview/'
 
 class PlanVerifyView(APIView):
 
@@ -545,3 +545,7 @@ class UserHavePlanView(APIView):
             return Response({"detail": True})
         else:
             return Response({"detail": False})
+class AllPlanListView(ListAPIView):
+    queryset = Plan.objects.all()
+    serializer_class = PlanListSerializer
+    permission_classes = [IsAuthenticated]

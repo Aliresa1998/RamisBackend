@@ -91,7 +91,7 @@ class UpdateHistoryTrade(UpdateAPIView):
         try:
             pk = kwargs['pk']
         except KeyError:
-            return Response('کلید اصلی شما اشتباه است.', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail':'کلید اصلی شما اشتباه است.'}, status=status.HTTP_400_BAD_REQUEST)
         wallet_balance = Wallet.objects.get(user=self.request.user).balance
         symbol = Trade.objects.get(id=pk)
         exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
@@ -103,13 +103,13 @@ class UpdateHistoryTrade(UpdateAPIView):
             Trade.objects.filter(pk=pk).update(
                 pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
             Wallet.objects.filter(user=self.request.user).update(balance=0)
-            return Response("موجودی حساب شما صفر شد شما کال مارجین خوردید")
+            return Response({"detail":"موجودی حساب شما صفر شد شما کال مارجین خوردید"})
         Trade.objects.filter(pk=pk).update(
             pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
         new_wallet_balance = wallet_balance + (exit_price * trade.amount)
         Wallet.objects.filter(user=self.request.user).update(
             balance=new_wallet_balance)
-        return Response("موفقیت آمیز بود.", status=status.HTTP_200_OK)
+        return Response({"detail":"موفقیت آمیز بود."}, status=status.HTTP_200_OK)
 
 
 class CreateWallet(UpdateAPIView):
@@ -142,7 +142,7 @@ class WithdrawWallet(UpdateAPIView):
         wallet = Wallet.objects.get(user=self.request.user).balance
         new_balance = wallet - self.request.data["balance"]
         if new_balance < 0:
-            return Response("موجودی حساب شما کافی نیست .", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail":"موجودی حساب شما کافی نیست ."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             Wallet.objects.filter(user=self.request.user).update(
                 balance=new_balance)

@@ -382,3 +382,7 @@ class DetailPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
         fields = ['plan', "amount"]
+class PlanListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan', 'amount', 'id']

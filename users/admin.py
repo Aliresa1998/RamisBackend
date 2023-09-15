@@ -12,4 +12,6 @@ class TicketAdmin(admin.ModelAdmin):
     list_display = ['id', 'subject', 'created_at', 'status']
 
 
-admin.site.register(Plan)
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ['plan', 'amount', 'is_delete']
