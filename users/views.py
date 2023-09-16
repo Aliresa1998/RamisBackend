@@ -480,15 +480,12 @@ class PlanVerifyView(APIView):
                 t_status = req.json()['data']['code']
                 if t_status == 100:
                     plan = Plan.objects.filter(id=data['plan_id']).first()
-                    custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
-                    custom_user.plan = plan
+                    CustomUser.objects.filter(user=self.request.user).update(plan=plan)
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
-
                     return Response({'text': str(req.json()['data']['ref_id'])}, status=status.HTTP_201_CREATED)
                 elif t_status == 101:
-
                     return Response({"text": str(req.json()['data']['message'])}, status=status.HTTP_200_OK)
                 else:
 
