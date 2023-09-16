@@ -435,7 +435,7 @@ class PlanView(APIView):
         else:
             e_code = req.json()['errors']['code']
             e_message = req.json()['errors']['message']
-            return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
+            return Response(f"Error code: {e_code}, Error Message: {e_message}")
 
 
 class GetPlan(ListAPIView):
@@ -479,36 +479,27 @@ class PlanVerifyView(APIView):
             if len(req.json()['errors']) == 0:
                 t_status = req.json()['data']['code']
                 if t_status == 100:
-                    plan = Plan.objects.filter(id='plan_id').first()
+                    plan = Plan.objects.filter(id=data['plan_id']).first()
                     custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
                     custom_user.plan = plan
                     walet = Wallet.objects.get(user=self.request.user)
                     new_balance = walet.balance + data['amount']
                     Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
 
-                    return redirect(to="https://panel.mycryptoprop.com/payment?status=success",
-                                    data='Transaction success.\nRefID: ' + str(
-                                        req.json()['data']['ref_id']
-                                    ))
+                    return Response({'text': str(req.json()['data']['ref_id'])}, status=status.HTTP_201_CREATED)
                 elif t_status == 101:
 
-                    return redirect(to="https://panel.mycryptoprop.com/payment?status=submitted",
-                                    data='Transaction submitted : ' + str(
-                                        req.json()['data']['message']
-                                    ))
+                    return Response({"text": str(req.json()['data']['message'])}, status=status.HTTP_200_OK)
                 else:
 
-                    return redirect(to="https://panel.mycryptoprop.com/payment?status=failed",
-                                    data='Transaction failed.\nStatus: ' + str(
-                                        req.json()['data']['message']
-                                    ))
+                    return Response({"error": str(req.json()['data']['message'])}, status=status.HTTP_424_FAILED_DEPENDENCY)
 
             else:
                 e_code = req.json()['errors']['code']
                 e_message = req.json()['errors']['message']
-                return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
+                return Response({"error": f"Error code: {e_code}, Error Message: {e_message}"})
         else:
-            return HttpResponse('Transaction failed or canceled by user')
+            return Response({"error": 'Transaction failed or canceled by user'})
 
 
 class DetailPlanView(UpdateAPIView):
