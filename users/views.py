@@ -32,6 +32,9 @@ from data.models import Wallet
 from django.conf import settings
 import requests
 import json
+import redis
+
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 
 class ProfileViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -408,10 +411,12 @@ class PlanView(APIView):
         plan = Plan.objects.filter(id=self.request.data['plan_id'], is_delete=False).first()
         if plan is None:
             return Response({"error": "پلن مورد نظر یافت نشد ."})
-        request.session[f'{self.request.user}'] = {
+        data = {
             'amount': plan.amount,
             'plan_id': plan.id
         }
+        json_data = json.dumps(data)
+        redis_client.set(f"{self.request.user}", json_data)
         amount = plan.amount
         req_data = {
             "merchant_id": MERCHANT,
@@ -453,59 +458,57 @@ ZP_API_REQUEST = "https://api.zarinpal.com/pg/v4/payment/request.json"
 ZP_API_VERIFY = "https://api.zarinpal.com/pg/v4/payment/verify.json"
 ZP_API_STARTPAY = "https://www.zarinpal.com/pg/StartPay/{authority}"
 description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"
-CallbackURL = 'http://127.0.0.1:8000/users/planverifyview/'
+CallbackURL = 'https://panel.mycryptoprop.com/done-payment/'
 
 
 class PlanVerifyView(APIView):
     def get(self, request):
-        try:
-            data = request.session[f'{self.request.user}']
-            t_status = request.GET.get('Status')
-            t_authority = request.GET['Authority']
-            if request.GET.get('Status') == 'OK':
-                req_header = {"accept": "application/json",
-                              "content-type": "application/json'"}
-                req_data = {
-                    "merchant_id": MERCHANT,
-                    "amount": data['amount'],
-                    "authority": t_authority
-                }
-                req = requests.post(url=ZP_API_VERIFY, data=json.dumps(req_data), headers=req_header)
-                if len(req.json()['errors']) == 0:
-                    t_status = req.json()['data']['code']
-                    if t_status == 100:
-                        plan = Plan.objects.filter(id='plan_id').first()
-                        custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
-                        custom_user.plan = plan
-                        walet = Wallet.objects.get(user=self.request.user)
-                        new_balance = walet.balance + data['amount']
-                        Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
+        data = redis_client.get(f"{self.request.user}")
+        data = json.loads(data)
+        t_status = request.GET.get('Status')
+        t_authority = request.GET['Authority']
+        if request.GET.get('Status') == 'OK':
+            req_header = {"accept": "application/json",
+                          "content-type": "application/json'"}
+            req_data = {
+                "merchant_id": MERCHANT,
+                "amount": data['amount'],
+                "authority": t_authority
+            }
+            req = requests.post(url=ZP_API_VERIFY, data=json.dumps(req_data), headers=req_header)
+            if len(req.json()['errors']) == 0:
+                t_status = req.json()['data']['code']
+                if t_status == 100:
+                    plan = Plan.objects.filter(id='plan_id').first()
+                    custom_user, created = CustomUser.objects.get_or_create(user=self.request.user)
+                    custom_user.plan = plan
+                    walet = Wallet.objects.get(user=self.request.user)
+                    new_balance = walet.balance + data['amount']
+                    Wallet.objects.filter(user=self.request.user).update(balance=new_balance)
 
-                        return redirect(to="https://panel.mycryptoprop.com/payment?status=success",
-                                        data='Transaction success.\nRefID: ' + str(
-                                            req.json()['data']['ref_id']
-                                        ))
-                    elif t_status == 101:
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=success",
+                                    data='Transaction success.\nRefID: ' + str(
+                                        req.json()['data']['ref_id']
+                                    ))
+                elif t_status == 101:
 
-                        return redirect(to="https://panel.mycryptoprop.com/payment?status=submitted",
-                                        data='Transaction submitted : ' + str(
-                                            req.json()['data']['message']
-                                        ))
-                    else:
-
-                        return redirect(to="https://panel.mycryptoprop.com/payment?status=failed",
-                                        data='Transaction failed.\nStatus: ' + str(
-                                            req.json()['data']['message']
-                                        ))
-
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=submitted",
+                                    data='Transaction submitted : ' + str(
+                                        req.json()['data']['message']
+                                    ))
                 else:
-                    e_code = req.json()['errors']['code']
-                    e_message = req.json()['errors']['message']
-                    return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
+
+                    return redirect(to="https://panel.mycryptoprop.com/payment?status=failed",
+                                    data='Transaction failed.\nStatus: ' + str(
+                                        req.json()['data']['message']
+                                    ))
+
             else:
-                return HttpResponse('Transaction failed or canceled by user')
-        except KeyError:
-            return Response({"error": "در دریافت اطلاعات مشکلی پیش آمده لطفا دوباره امتحان بکنید."})
+                e_code = req.json()['errors']['code']
+                e_message = req.json()['errors']['message']
+                return HttpResponse(f"Error code: {e_code}, Error Message: {e_message}")
+        else:
+            return HttpResponse('Transaction failed or canceled by user')
 
 
 class DetailPlanView(UpdateAPIView):
