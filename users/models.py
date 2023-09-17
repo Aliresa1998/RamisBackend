@@ -34,7 +34,7 @@ class CustomUser(models.Model):
     is_admin = models.BooleanField(default=False)
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='profile')
-    plan = models.OneToOneField(
+    plan = models.ForeignKey(
         Plan, on_delete=models.CASCADE, null=True, blank=True)
 
 
