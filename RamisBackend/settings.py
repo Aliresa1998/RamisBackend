@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-gquaqrf2oj0izp#necaa^y9$d+^wy7z=w!xqu=uo_-53aitgb!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost', '176.31.82.46', 'back.mycryptoprop.com' , '65.108.17.125']
 
 # Application definition
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'corsheaders',
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'data',
     'celery',
     'django_celery_beat',
+    'azbankgateways',
 ]
 
 MIDDLEWARE = [
@@ -72,7 +74,13 @@ CORS_ALLOWED_ORIGINS = [
     'http://51.89.247.248:8080',
     'http://localhost:3000',
     'http://127.0.0.1:8000',
+    'http://51.89.247.248:8089',
+    'https://panel.mycryptoprop.com',
     'http://panel.mycryptoprop.com',
+    'http://51.89.247.248:8085',
+    'http://51.89.247.248:9090',
+    'http://176.31.82.47:8582',
+    'http://176.31.82.47',
 ]
 ROOT_URLCONF = 'RamisBackend.urls'
 
@@ -143,6 +151,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+FONT_DIR = os.path.join(BASE_DIR, 'static', 'fonts')
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -176,6 +185,7 @@ REST_FRAMEWORK = {
         'username', 'email', 'username_email'
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'PAGE_SIZE': 10,
 }
 
 JWT_AUTH_COOKIE = 'my-app-auth'
@@ -196,7 +206,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = 'http://51.89.247.248:8080/confirm-email'
+LOGIN_URL = 'https://panel.mycryptoprop.com/confirm-email'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',
@@ -206,3 +216,14 @@ SPECTACULAR_SETTINGS = {
 }
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']
+WKHTMLTOPDF_PATH = os.environ.get('WKHTMLTOPDF_PATH', '/usr/bin/wkhtmltopdf')
+
+# Configure xhtml2pdf
+XHTML2PDF = {
+    'WKHTMLTOPDF_CMD': WKHTMLTOPDF_PATH,
+    'DEFAULT_FONT': 'font.ttf',  # Replace with the font file name
+    'DEFAULT_FONT_SIZE': 12,
+    'URI_INCLUDES': [],
+    'CSS_FILE': os.path.join(BASE_DIR, 'static', 'styles.css'),
+}
