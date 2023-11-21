@@ -10,12 +10,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView, \
+    RetrieveUpdateAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa
 from users.permissions import AdminAccessPermission
-from .models import CustomUser, Document, Message, Ticket, Plan
+from .models import CustomUser, Document, Message, Ticket, Plan, CryptoPayment
 from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializer, AdminCreateTicketSerializer, \
     AdminEditUserNameSerializer, AdminGetTicketSerializer, AdminTicketMessageSerializer, DocumentSerializer, \
     EditInformationSerializer, GetTicketSerializer, InboxMessageSerializer, IsReadMessageSerializer, MessageSerializer, \
@@ -23,7 +24,8 @@ from .serializers import AdminChangePasswordSerializer, AdminCloseTicketSerializ
     ProfileSerializer, AdminUserPlanSerializer, AdminAllRequestSerializer, \
     TicketIsReadSerializer, TicketMessageSerializer, UserCloseTicketSerializer, UserCreateTicketSerializer, \
     UserDetailsSerializer, UpdateImageSerializer, PlanSerializer, GetPlansSerializer, GetDocumentSerializer, \
-    DeletePlanSerializer, DetailPlanSerializer
+    DeletePlanSerializer, DetailPlanSerializer, CryptoPaymentSerializer, GetCryptoPaymentSerializer, \
+    UpdateCryptoPaymentSerializer
 from .pagination import CustomPagination
 from django.urls import reverse
 from azbankgateways import bankfactories, models as bank_models, default_settings as settings
@@ -441,6 +443,7 @@ class PlanView(APIView):
 class GetPlan(ListAPIView):
     serializer_class = GetPlansSerializer
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         customuser = CustomUser.objects.get(user=self.request.user)
         return Plan.objects.filter(customuser=customuser)
@@ -555,3 +558,44 @@ class AllPlanListView(ListAPIView):
     queryset = Plan.objects.all()
     serializer_class = PlanListSerializer
     permission_classes = [IsAuthenticated]
+
+
+class CreateCryptoPaymentView(CreateAPIView):
+    serializer_class = CryptoPaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class GetCryptoPaymentView(ListAPIView):
+    permission_classes = [IsAuthenticated, AdminAccessPermission]
+    serializer_class = GetCryptoPaymentSerializer
+    queryset = CryptoPayment.objects.all()
+
+
+class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, AdminAccessPermission]
+    serializer_class = UpdateCryptoPaymentSerializer
+
+    def get_queryset(self):
+        return CryptoPayment.objects.filter(id=self.kwargs['pk'])
+
+    def update(self, request, *args, **kwargs):
+        data = self.get_queryset().get()
+        if data.status == 2:
+            return Response({"error": "پرداخت شما از قبل تایید شده"})
+        serializers = UpdateCryptoPaymentSerializer(data=request.data)
+        serializers.is_valid()
+        data.status = serializers.validated_data['status']
+        data.save()
+
+        if data.status == 2:
+            user = User.objects.filter(id=data.user_id).first()
+            wallet = Wallet.objects.filter(user=user).first()
+            balance = wallet.balance + data.plan.amount
+            wallet.balance = balance
+            CustomUser.objects.filter(user=user).update(plan=data.plan)
+            wallet.save()
+        return Response({"text": "عملیات با موفقیت انجام شد"})

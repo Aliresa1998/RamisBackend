@@ -3,12 +3,14 @@ from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, Confi
 from dj_rest_auth.views import LoginView, LogoutView
 from rest_framework import routers
 
-from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, AllPlanListView, \
+from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTicketView, AdminTicketMessageView, \
+    AllPlanListView, \
     AllProfileView, DocumentView, EditInformationView, ExportProfilesPDFView, MessageIsReadView, ProfileViewSet, \
     SendMessageAPIView, InboxAPIView, AdminAllPlanView, AdminAllTransactionView, \
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
     GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById, \
-    PlanVerifyView, DetailPlanView, AdminSinglePlanView, CreatePlanView, UserHavePlanView
+    PlanVerifyView, DetailPlanView, AdminSinglePlanView, CreatePlanView, UserHavePlanView, CreateCryptoPaymentView, \
+    GetCryptoPaymentView, UpdateCryptoPaymentView
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -56,6 +58,9 @@ urlpatterns = [
                        VerifyEmailView.as_view(), name='account_email'),
                   path('account-confirm-email/',
                        VerifyEmailView.as_view(), name='account_email_verification_sent'),
+                  path('create-crypto-payment/', CreateCryptoPaymentView.as_view()),
+                  path('get-crypto-payment/', GetCryptoPaymentView.as_view()),
+                  path('update-crypto-payment/<int:pk>', UpdateCryptoPaymentView.as_view()),
                   re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$',
                           VerifyEmailView.as_view(), name='account_confirm_email'),
 

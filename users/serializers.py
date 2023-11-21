@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
-from .models import CustomUser, Message, Ticket, User, Document, Plan
+from .models import CustomUser, Message, Ticket, User, Document, Plan, CryptoPayment
 from dj_rest_auth.serializers import PasswordChangeSerializer
 from data.models import WalletHistory
 from data.serializers import ChallangeSerializer, GetWalletSerializer, HistorySerializer, WalletHistorySerializer
@@ -382,7 +382,29 @@ class DetailPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
         fields = ['plan', "amount"]
+
+
 class PlanListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
         fields = ['plan', 'amount', 'id']
+
+
+class CryptoPaymentSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = CryptoPayment
+        fields = ['plan', 'image', "user"]
+
+
+class GetCryptoPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CryptoPayment
+        fields = ['id', 'user', 'plan', 'image', 'status']
+
+
+class UpdateCryptoPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CryptoPayment
+        fields = ['status']

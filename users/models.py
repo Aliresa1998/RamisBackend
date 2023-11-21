@@ -86,3 +86,15 @@ class Document(models.Model):
         validators=[validate_image_size], null=True, blank=True)
     Commitment_letter = models.ImageField(
         validators=[validate_image_size], null=True, blank=True)
+
+
+class CryptoPayment(models.Model):
+    STATUS_CHOISES = (
+        (1, 'در انتظار تایید'),
+        (0, 'تایید نشده'),
+        (2, "تایید شده"),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
+    image = models.ImageField()
+    status = models.IntegerField(choices=STATUS_CHOISES, default=1)
