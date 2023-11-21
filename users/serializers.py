@@ -104,14 +104,19 @@ class CustomPasswordChangeSerializer(PasswordChangeSerializer):
         elif self.request.data['new_password1'] == self.request.data["new_password1"]:
             raise serializers.ValidationError("رمز جدید شما با رمز قبلی یکی است .")
         return value
+
+
 class AdminEditUserNameSerializer(serializers.ModelSerializer):
     new_username = serializers.CharField(required=True)
+
     class Meta:
         model = User
         fields = ['username', 'new_username']
 
+
 class AdminChangePasswordSerializer(serializers.ModelSerializer):
     new_password = serializers.CharField(required=True)
+
     class Meta:
         model = User
-        fields = ['username','new_password']
+        fields = ['username', 'new_password']
