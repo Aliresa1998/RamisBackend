@@ -59,7 +59,7 @@ urlpatterns = [
                   path('account-confirm-email/',
                        VerifyEmailView.as_view(), name='account_email_verification_sent'),
                   path('create-crypto-payment/', CreateCryptoPaymentView.as_view()),
-                  path('get-crypto-payment/', GetCryptoPaymentView.as_view()),
+                  path('get-crypto-payment/<int:status>', GetCryptoPaymentView.as_view()),
                   path('update-crypto-payment/<int:pk>', UpdateCryptoPaymentView.as_view()),
                   re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$',
                           VerifyEmailView.as_view(), name='account_confirm_email'),
