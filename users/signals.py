@@ -17,6 +17,8 @@ def CreateWallet(sender, instance, created, **kwargs):
     if created:
         user = instance
         Wallet.objects.create(user=user, balance=0)
+
+
 @receiver(post_save, sender=User)
 def CreateProfile(sender, instance, created, **kwargs):
     if created:
