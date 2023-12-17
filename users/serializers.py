@@ -398,7 +398,22 @@ class CryptoPaymentSerializer(serializers.ModelSerializer):
         fields = ['plan', 'image', "user"]
 
 
+class UserDetail(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+
+
+class PlanDetail(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['plan']
+
+
 class GetCryptoPaymentSerializer(serializers.ModelSerializer):
+    user = UserDetail()
+    plan = PlanDetail()
+
     class Meta:
         model = CryptoPayment
         fields = ['id', 'user', 'plan', 'image', 'status']
