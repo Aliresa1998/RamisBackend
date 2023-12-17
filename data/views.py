@@ -104,6 +104,21 @@ class UpdateHistoryTrade(UpdateAPIView):
                 pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
             Wallet.objects.filter(user=self.request.user).update(balance=0)
             return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+        challange = Challange.objects.filter(user=self.request.user).first()
+        pnl_percent = (pnl * 100) / challange.total_assets
+        percent_num = round(pnl_percent, 1)
+        percents = challange.percent + percent_num
+        if percents <= -5:
+            Wallet.objects.filter(user=self.request.user).update(balance=0)
+            return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+        if percents >= 8:
+            Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
+            challange.challange_level = str(int(challange.challange_level) + 1)
+            challange.percent = 0
+            challange.save()
+            return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+        challange.percent = percents
+        challange.save()
         Trade.objects.filter(pk=pk).update(
             pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
         new_wallet_balance = wallet_balance + (exit_price * trade.amount)
@@ -191,18 +206,6 @@ class GetChallangeView(ListAPIView):
     serializer_class = ChallangeSerializer
 
     def get_queryset(self):
-        current_user = self.request.user
-        (wallet, created) = Wallet.objects.get_or_create(user=current_user)
-        user_balance = wallet.balance
-        if user_balance <= 500:
-            Challange.objects.filter(
-                user=current_user).update(challange_level='1')
-        elif 500 < user_balance <= 5000:
-            Challange.objects.filter(
-                user=current_user).update(challange_level='2')
-        elif user_balance >= 500:
-            Challange.objects.filter(
-                user=current_user).update(challange_level='3')
         return Challange.objects.filter(user=self.request.user).all()
 
 

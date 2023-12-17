@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AccountGrowth, Trade, Order, Wallet
+from .models import AccountGrowth, Trade, Order, Challange, Wallet
 
 
 # Register your models here.]@admin.register(CustomUser)
@@ -12,3 +12,4 @@ class ProfileAdmin(admin.ModelAdmin):
 admin.site.register(Trade)
 admin.site.register(Order)
 admin.site.register(Wallet)
+admin.site.register(Challange)

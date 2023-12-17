@@ -30,7 +30,7 @@ from .pagination import CustomPagination
 from django.urls import reverse
 from azbankgateways import bankfactories, models as bank_models, default_settings as settings
 from azbankgateways.exceptions import AZBankGatewaysException
-from data.models import Wallet
+from data.models import Wallet, Challange
 from django.conf import settings
 import requests
 import json
@@ -570,9 +570,12 @@ class CreateCryptoPaymentView(CreateAPIView):
 
 
 class GetCryptoPaymentView(ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated, AdminAccessPermission]
     serializer_class = GetCryptoPaymentSerializer
-    queryset = CryptoPayment.objects.all()
+
+    def get_queryset(self):
+        return CryptoPayment.objects.filter(status=self.kwargs['status'])
 
 
 class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
@@ -591,7 +594,8 @@ class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
         data.status = serializers.validated_data['status']
         data.save()
 
-        if data.status == 2:
+        if data.status == 1:
+            Challange.objects.filter(user=data.user).update(total_assets=data.plan.amount)
             user = User.objects.filter(id=data.user_id).first()
             wallet = Wallet.objects.filter(user=user).first()
             balance = wallet.balance + data.plan.amount
