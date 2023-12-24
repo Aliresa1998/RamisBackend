@@ -69,6 +69,7 @@ class Challange(models.Model):
     total_assets = models.IntegerField(default=0)
     percent = models.DecimalField(max_digits=20, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
+    start_day_assets = models.IntegerField(default=0)
 
 
 class AccountGrowth(models.Model):
