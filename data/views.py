@@ -108,15 +108,121 @@ class UpdateHistoryTrade(UpdateAPIView):
         pnl_percent = (pnl * 100) / challange.total_assets
         percent_num = round(pnl_percent, 1)
         percents = challange.percent + percent_num
-        if percents <= -5:
+        # if percents <= -5:
+        #     Wallet.objects.filter(user=self.request.user).update(balance=0)
+        #     return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+        if challange.challange_level == '1':
+            date = (datetime.now().date() - challange.created_at).days
+            if 0 <= date <= 30:
+                if percents < -12:
+                    Wallet.objects.filter(user=self.request.user).update(balance=0)
+                    return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+                if percents >= 8:
+                    Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
+                    challange.challange_level = str(int(challange.challange_level) + 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+            else:
+                challange.delete()
+                Wallet.objects.filter(user=self.request.user).update(balance=0)
+                return Response({"detail": "شما در ۳۰ روز نتوانستید چاش خود را کامل بکنید و حساب شما صفر شد."})
+        if challange.challange_level == '2':
+            date = (datetime.now().date() - challange.created_at).days
+            if 0 <= date <= 60:
+                if percents < -12:
+                    challange.challange_level = str(int(challange.challange_level) - 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "شما به سطح پایین تر رفتید."})
+                if percents >= 4:
+                    Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
+                    challange.challange_level = str(int(challange.challange_level) + 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+            else:
+                challange.delete()
+                Wallet.objects.filter(user=self.request.user).update(balance=0)
+                return Response({"detail": "شما در ۶۰ روز نتوانستید چاش خود را کامل بکنید و حساب شما صفر شد."})
+        challange.percent = percents
+        challange.save()
+        Trade.objects.filter(pk=pk).update(
+            pnl=pnl, exit_price=exit_price, close_time=datetime.now())
+        new_wallet_balance = wallet_balance + (exit_price * trade.amount)
+        Wallet.objects.filter(user=self.request.user).update(
+            balance=new_wallet_balance)
+        return Response({"detail": "موفقیت آمیز بود."}, status=status.HTTP_200_OK)
+
+
+class CloseHistoryTrade(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs, ):
+        try:
+            pk = kwargs['pk']
+        except KeyError:
+            return Response({'detail': 'کلید اصلی شما اشتباه است.'}, status=status.HTTP_400_BAD_REQUEST)
+        wallet_balance = Wallet.objects.get(user=self.request.user).balance
+        symbol = Trade.objects.get(id=pk)
+        exit_price = yf.Ticker(symbol.symbol).history()['Close'][-1]
+        exit_price = decimal.Decimal(exit_price)
+        trade = Trade.objects.get(pk=pk)
+        pnl = ((exit_price - trade.entry_price) * trade.amount) * trade.leverage
+        res_balance = wallet_balance + pnl
+        if res_balance <= 0:
+            Trade.objects.filter(pk=pk).update(
+                pnl=pnl, status=False, exit_price=exit_price, close_time=datetime.now())
             Wallet.objects.filter(user=self.request.user).update(balance=0)
             return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
-        if percents >= 8:
-            Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
-            challange.challange_level = str(int(challange.challange_level) + 1)
-            challange.percent = 0
-            challange.save()
-            return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+        challange = Challange.objects.filter(user=self.request.user).first()
+        pnl_percent = (pnl * 100) / challange.total_assets
+        percent_num = round(pnl_percent, 1)
+        percents = challange.percent + percent_num
+        # if percents <= -5:
+        #     Wallet.objects.filter(user=self.request.user).update(balance=0)
+        #     return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+        if challange.challange_level == '1':
+            date = (datetime.now().date() - challange.created_at).days
+            if 0 <= date <= 30:
+                if percents < -12:
+                    Wallet.objects.filter(user=self.request.user).update(balance=0)
+                    challange.delete()
+                    return Response({"detail": "موجودی حساب شما صفر شد شما کال مارجین خوردید"})
+                if percents >= 8:
+                    Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
+                    challange.challange_level = str(int(challange.challange_level) + 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+            else:
+                challange.delete()
+                Wallet.objects.filter(user=self.request.user).update(balance=0)
+                return Response({"detail": "شما در ۳۰ روز نتوانستید چاش خود را کامل بکنید و حساب شما صفر شد."})
+        if challange.challange_level == '2':
+            date = (datetime.now().date() - challange.created_at).days
+            if 0 <= date <= 60:
+                if percents < -12:
+                    challange.challange_level = str(int(challange.challange_level) - 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "شما به سطح پایین تر رفتید."})
+                if percents >= 4:
+                    Wallet.objects.filter(user=self.request.user).update(balance=challange.total_assets)
+                    challange.challange_level = str(int(challange.challange_level) + 1)
+                    challange.created_at = datetime.now()
+                    challange.percent = 0
+                    challange.save()
+                    return Response({"detail": "تبریک شما به سطح چالش بالاتر رفتید."})
+            else:
+                challange.delete()
+                Wallet.objects.filter(user=self.request.user).update(balance=0)
+                return Response({"detail": "شما در ۶۰ روز نتوانستید چاش خود را کامل بکنید و حساب شما صفر شد."})
         challange.percent = percents
         challange.save()
         Trade.objects.filter(pk=pk).update(
