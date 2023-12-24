@@ -1,6 +1,6 @@
 from datetime import datetime
 from celery import shared_task
-from .models import Trade, Wallet, AccountGrowth, Order
+from .models import Trade, Wallet, AccountGrowth, Order, Challange
 from django.contrib.auth.models import User
 import yfinance as yf
 import decimal
@@ -116,3 +116,45 @@ def sell_stop():
         if order.price >= entry_price:
             Trade.objects.create(user=order.user, symbol=order.symbol, amount=order.amount, direction="SHORT",
                                  entry_price=entry_price)
+
+
+@shared_task
+def initial_start_day_assets():
+    chalengs = Challange.objects.all()
+    for chaleng in chalengs:
+        start_day_assets = 0
+        user = chaleng.user
+        walet_balance = Wallet.objects.get(user=user)
+        start_day_assets += walet_balance.balance
+        trades = Trade.objects.filter(user=user, status=True)
+        for trade in trades:
+            start_day_assets = + yf.Ticker(trade.symbol).history()['Close'][-1] * trade.amount
+        chaleng.start_day_assets = start_day_assets
+        chaleng.save()
+
+
+@shared_task
+def check_daily_loss():
+    chalengs = Challange.objects.all()
+    for chaleng in chalengs:
+        now_assets = 0
+        user = chaleng.user
+        walet_balance = Wallet.objects.get(user=user)
+        now_assets += walet_balance.balance
+        trades = Trade.objects.filter(user=user, status=True)
+        for trade in trades:
+            now_assets = + yf.Ticker(trade.symbol).history()['Close'][-1] * trade.amount
+        persents = int(((now_assets / chaleng.start_day_assets) - 1) * 100)
+        if persents <= -5:
+            if chaleng.challange_level == "1":
+                walet_balance.balance = 0
+                chaleng.delete()
+                walet_balance.save()
+            if chaleng.challenge_level == "2":
+                chaleng.challange_level = '1'
+                chaleng.created_at = datetime.now()
+                chaleng.save()
+            if chaleng.challenge_level == "3":
+                chaleng.challange_level = '2'
+                chaleng.created_at = datetime.now()
+                chaleng.save()
