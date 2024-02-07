@@ -1,0 +1,15 @@
+{
+    "SECRET_KEY":"",
+    
+    "DB_NAME": "",
+    "DB_USER": "",
+    "DB_PASSWORD": "",
+    
+    "DJANGO_LOGGER_FILE_PATH":"debug.log",
+    "ALLOWED_HOSTS":["localhost:8000", "localhost"],
+    "STATIC_ROOT": "static/",
+    "MEDIA_ROOT": "media/",
+    "CORS_ALLOWED_ORIGINS":"",
+    "CSRF_TRUSTED_ORIGINS":"",
+    "PUBLIC_URL":""
+}

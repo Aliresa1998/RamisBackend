@@ -93,24 +93,11 @@ db.sqlite3
 venv
 .idea
 
-celerybeat-schedule.dat
-celerybeat-schedule.bak
-celerybeat-schedule.dir
-
 ### media 
 media/
-smilinpass/config.json
-!media/profile_pictures/sample_profile.png
 
 static/**
-!static/logo-bookc-blue.29899811.png
 
-
-# celery 
-celerybeat-schedule.* 
-
-
-config.json
-
-
-chromedriver
+RamisBackend/config.json
+shop_1.code-workspace
+staticfiles
