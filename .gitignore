@@ -112,6 +112,5 @@ celerybeat-schedule.*
 
 config.json
 
-**/migrations/
 
 chromedriver
