@@ -28,7 +28,7 @@ def five_minute_long():
             pnl=pnl,
             close_time=datetime.now(),
             status=False,
-        )
+            )
         wallet_balance = Wallet.objects.get(user=trade.user).balance
         new_wallet_balance = wallet_balance + pnl
         Wallet.objects.filter(user=trade.user).update(balance=new_wallet_balance)

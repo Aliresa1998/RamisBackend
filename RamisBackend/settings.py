@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-gquaqrf2oj0izp#necaa^y9$d+^wy7z=w!xqu=uo_-53aitgb!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost', '176.31.82.46', 'back.mycryptoprop.com' , '65.108.17.125']
+ALLOWED_HOSTS = ['51.89.247.248', '127.0.0.1', 'localhost', '176.31.82.46', 
+                 'back.mycryptoprop.com' , '65.108.17.125']
 
 # Application definition
 
@@ -37,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    ''
+    
     # My Apps
     'rest_framework',
     'drf_spectacular',
@@ -82,6 +83,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://176.31.82.47:8582',
     'http://176.31.82.47',
 ]
+
 ROOT_URLCONF = 'RamisBackend.urls'
 
 TEMPLATES = [
@@ -105,17 +107,17 @@ WSGI_APPLICATION = 'RamisBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Passwo
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ramis',
-        'USER': 'admin',
-        'PASSWORD': 'admin12345689',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'crypto_1',
+        'USER': 'bahapg',
+        'PASSWORD': "TestPass123",
         'HOST': 'localhost',
-        'PORT': '',
+        'PORT': 5432,
     }
 }
-# Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -162,13 +164,16 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
 # jwt config
 USE_JWT = True
+
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'jwt-auth',
     'USER_DETAILS_SERIALIZER': 'users.serializers.UserDetailsSerializer',
 }
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(weeks=999),
     "AUTH_HEADER_TYPES": ("JWT",),
@@ -212,8 +217,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Ramis project',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
+    }
 
-}
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']

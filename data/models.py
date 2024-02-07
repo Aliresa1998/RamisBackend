@@ -67,7 +67,7 @@ class Challange(models.Model):
     challange_level = models.CharField(
         max_length=1, choices=LEVEL_CHOICES, default='1')
     total_assets = models.IntegerField(default=0)
-    percent = models.DecimalField(max_digits=20, decimal_places=2)
+    percent = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     start_day_assets = models.IntegerField(default=0)
 
