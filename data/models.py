@@ -19,6 +19,11 @@ TRANSACTION_CHOICES = (
 
 
 class Trade(models.Model):
+    TRADE_STATUS = (
+        ('OPEN', 'Open'),
+        ('CLOSED', 'Closed'),
+    )
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trades')
     symbol = models.CharField(max_length=20)
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
@@ -36,6 +41,8 @@ class Trade(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     close_time = models.DateTimeField(null=True, blank=True)
     leverage = models.IntegerField(default=1)
+
+    trade_status = models.CharField(max_length=10, choices=TRADE_STATUS, default='OPEN')
 
     class Meta:
         ordering = ['-time']
