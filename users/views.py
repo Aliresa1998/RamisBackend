@@ -575,7 +575,11 @@ class GetCryptoPaymentView(ListAPIView):
     serializer_class = GetCryptoPaymentSerializer
 
     def get_queryset(self):
-        return CryptoPayment.objects.filter(status=self.kwargs['status'])
+        status = self.kwargs.get('status', None)
+        if status is not None:
+            return CryptoPayment.objects.filter(status=status)
+        else:
+            return CryptoPayment.objects.all()
 
 
 class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
