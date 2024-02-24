@@ -1,71 +1,64 @@
-from abc import ABC, abstractmethod
-import yliveticker
-from .models import Trade
+from django.utils import timezone
+from .models import Trade, Order
 
 
-price_list = [
-    "BTC=X", "BTC-USD", "ETH-USD", "DOGE-USD", "LTC-USD", "XRP-USD", "ADA-USD", 
-    "DOT1-USD", "UNI3-USD", "LINK-USD", "BCH-USD", "XLM-USD", "USDT-USD", 
-    "WBTC-USD", "AAVE-USD", "USDC-USD", "EOS-USD", "TRX-USD", "FIL-USD",
-    "XTZ-USD", "NEO-USD", "ATOM1-USD", "BSV-USD", "MKR-USD", "COMP-USD", 
-    "DASH-USD", "ETC-USD", "ZEC-USD", "OMG-USD", "SUSHI-USD", "YFI-USD", 
-    "SNX-USD", "UMA-USD", "REN-USD", "CRV-USD"
-    ]
+def calculate_value(trade, price):
+    initial_value = trade.amount * trade.entry_price * trade.leverage
 
-# Define the common interface for all strategies
-class PriceSourceStrategy(ABC):
-    @abstractmethod
-    def get_price(self, symbol):
-        pass
+    if trade.direction == 'LONG':
+        new_value = trade.amount * price * trade.leverage
+        # Check if stop_loss and take_profit are not None before comparing
+        if trade.stop_loss is not None and price <= trade.stop_loss:
+            trade.trade_status = 'CLOSED'
+            trade.exit_price = trade.stop_loss
+            trade.pnl = (trade.stop_loss - trade.entry_price) * trade.amount * trade.leverage
+        elif trade.take_profit is not None and price >= trade.take_profit:
+            trade.trade_status = 'CLOSED'
+            trade.exit_price = trade.take_profit
+            trade.pnl = (trade.take_profit - trade.entry_price) * trade.amount * trade.leverage
 
-# Concrete strategy: API
-class ApiPriceSource(PriceSourceStrategy):
-    def get_price(self, symbol):
-        # Implement the logic to get the price from an API
-        # This is just a placeholder
-        return 100.00
+    elif trade.direction == 'SHORT':
+        new_value = trade.amount * (2 * trade.entry_price - price) * trade.leverage
+        # Check for stop loss and take profit for SHORT position
+        if trade.stop_loss is not None and price >= trade.stop_loss:
+            trade.trade_status = 'CLOSED'
+            trade.exit_price = trade.stop_loss
+            trade.pnl = (trade.entry_price - trade.stop_loss) * trade.amount * trade.leverage
+        elif trade.take_profit is not None and price <= trade.take_profit:
+            trade.trade_status = 'CLOSED'
+            trade.exit_price = trade.take_profit
+            trade.pnl = (trade.entry_price - trade.take_profit) * trade.amount * trade.leverage
 
-# Concrete strategy: WebSocket
-class WebSocketPriceSource(PriceSourceStrategy):
-    def get_price(self, symbol):
-        # Implement the logic to get the price from a WebSocket
-        # This is just a placeholder
-        return 200.00
-
-# Concrete strategy: YLiveTicker
-class YLiveTickerPriceSource(PriceSourceStrategy):
-    def __init__(self, price_list):
-        self.prices = {}
-        yliveticker.YLiveTicker(on_ticker=self.on_new_msg, ticker_names=[price_list])
-
-    def on_new_msg(self, ws, msg):
-        symbol = msg['symbol']
-        price = msg['price']
-        self.prices[symbol] = price
-
-    def get_price(self, symbol):
-        return self.prices.get(symbol, None)
+    # Check for liquidation
+    if initial_value - new_value >= trade.liquidation_amount:
+        trade.trade_status = 'Liquidated'
+        trade.exit_price = price
+    elif trade.trade_status == 'CLOSED':
+        trade.value = trade.exit_price * trade.amount * trade.leverage
+    elif trade.trade_status == 'Open':
+        trade.value = new_value
+    # Save changes to the database
+    trade.save(update_fields=['value', 'trade_status', 'exit_price', 'pnl'])
 
 
-# Context
-class PriceSource:
-    def __init__(self, source: PriceSourceStrategy):
-        self._source = source
+def update_order(order, current_price):
+    if not order.is_done and not order.is_delete:
+        if order.order_type == 'BUY_LIMIT' and current_price <= order.price:
+            order.is_done = True
+        elif order.order_type == 'SELL_LIMIT' and current_price >= order.price:
+            order.is_done = True
+        elif order.order_type == 'BUY_STOP' and current_price >= order.price:
+            order.is_done = True
+        elif order.order_type == 'SELL_STOP' and current_price <= order.price:
+            order.is_done = True
+        order.save()
 
-    @property
-    def source(self):
-        return self._source
 
-    @source.setter
-    def source(self, source: PriceSourceStrategy):
-        self._source = source
+def update_trades(symbol, price):
+    trades = Trade.objects.filter(symbol=symbol, trade_status='OPEN')
+    for trade in trades:
+        calculate_value(trade, price)
 
-    def get_price(self, symbol):
-        return self._source.get_price(symbol)
-    
-
-price_source = PriceSource(YLiveTickerPriceSource(price_list))
-
-# Use the PriceSource to get prices
-btc_price = price_source.get_price("BTC-USD")
-eth_price = price_source.get_price("ETH-USD")
+    orders = Order.objects.filter(symbol=symbol, is_done=False, is_delete=False)
+    for order in orders:
+        update_order(order, price)

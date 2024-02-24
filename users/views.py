@@ -403,7 +403,9 @@ class Unread(APIView):
             ticket = Ticket.objects.filter(is_read=False)
             return Response(ticket.count(), status=status.HTTP_200_OK)
         else:
-            return Response({"detail": "نوع پیام انتخابی درست نمیباشد"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "نوع پیام انتخابی درست نمیباشد"}, 
+                status=status.HTTP_400_BAD_REQUEST)
 
 
 class PlanView(APIView):

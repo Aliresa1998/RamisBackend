@@ -112,10 +112,17 @@ class WalletHistorySerializer(serializers.ModelSerializer):
 
 
 class ChallangeSerializer(serializers.ModelSerializer):
+    growth = serializers.SerializerMethodField()
+
     class Meta:
         model = Challange
-        fields = ['user', 'challange_level']
-
+        fields = ['user', 'challange_level', 'growth', 'total_assets', 'start_day_assets']
+    
+    def get_growth(self, obj):
+        if obj.start_day_assets == 0:  # Avoid division by zero
+            return None
+        growth = ((obj.total_assets - obj.start_day_assets) / obj.start_day_assets) * 100
+        return f'{growth:.2f}%'
 
 class AccountGrowthSerializer(serializers.ModelSerializer):
     class Meta:

@@ -22,6 +22,7 @@ class Trade(models.Model):
     TRADE_STATUS = (
         ('OPEN', 'Open'),
         ('CLOSED', 'Closed'),
+        ('Liquidated', 'Liquidated')
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trades')
@@ -43,10 +44,13 @@ class Trade(models.Model):
     leverage = models.IntegerField(default=1)
 
     trade_status = models.CharField(max_length=10, choices=TRADE_STATUS, default='OPEN')
+    value = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    liquidation_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True)
 
     class Meta:
         ordering = ['-time']
-
+    
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
