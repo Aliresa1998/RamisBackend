@@ -3,6 +3,8 @@ from rest_framework import serializers, status
 from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order
 import yfinance as yf
 from rest_framework.response import Response
+from datetime import timedelta
+from django.utils import timezone
 
 
 class DataSerializer(serializers.Serializer):
@@ -113,16 +115,34 @@ class WalletHistorySerializer(serializers.ModelSerializer):
 
 class ChallangeSerializer(serializers.ModelSerializer):
     growth = serializers.SerializerMethodField()
+    days_remaining = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Challange
-        fields = ['user', 'challange_level', 'growth', 'total_assets', 'start_day_assets']
+        fields = [
+            'user', 'challange_level', 'growth', 'total_assets', 'start_day_assets',
+            'days_remaining']
     
     def get_growth(self, obj):
         if obj.start_day_assets == 0:  # Avoid division by zero
             return None
         growth = ((obj.total_assets - obj.start_day_assets) / obj.start_day_assets) * 100
         return f'{growth:.2f}%'
+
+    def get_days_remaining(self, obj):
+        if obj.challange_level == '1':
+            end_date = obj.created_at + timedelta(days=30)
+        elif obj.challange_level == '2':
+            if obj.changed_date:
+                end_date = obj.changed_date + timedelta(days=60)
+            else:  # Fallback if changed_date is somehow not set
+                end_date = obj.created_at + timedelta(days=60)
+        else:  # For level 3
+            return "Unlimited"
+        
+        days_remaining = (end_date - timezone.now()).days
+        return days_remaining if days_remaining > 0 else 0
 
 class AccountGrowthSerializer(serializers.ModelSerializer):
     class Meta:

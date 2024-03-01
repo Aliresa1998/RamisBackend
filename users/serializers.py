@@ -381,7 +381,7 @@ class DeletePlanSerializer(serializers.ModelSerializer):
 class DetailPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
-        fields = ['plan', "amount"]
+        fields = '__all__'
 
 
 class PlanListSerializer(serializers.ModelSerializer):

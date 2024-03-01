@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 # Create your models here.
@@ -92,7 +93,16 @@ class Challange(models.Model):
     start_day_assets = models.IntegerField(default=0)
     status = models.CharField(
         max_length=10, choices=STATUS, default='active', null=True, blank=True)
+    changed_date = models.DateTimeField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            orig = Challange.objects.get(pk=self.pk)
+            if orig.challange_level != self.challange_level:
+                self.changed_date = timezone.now()
+        else:
+            self.changed_date = timezone.now()  # Set when the object is first created
+        super(Challange, self).save(*args, **kwargs)
 
 class AccountGrowth(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

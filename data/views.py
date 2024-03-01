@@ -1,7 +1,7 @@
 import decimal
 from datetime import datetime
 import yfinance as yf
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -422,3 +422,18 @@ class DeleteOrder(APIView):
                 {"condition": "سفارش شما با موفقیت حذف شد"}, 
                 status=status.HTTP_200_OK
                 )
+
+
+class GetAllCoins(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        coins = [
+            "BTC-USD", "ETH-USD", "DOGE-USD", "LTC-USD", "XRP-USD", "ADA-USD", 
+            "DOT1-USD", "UNI3-USD", "LINK-USD", "BCH-USD", "XLM-USD", "USDT-USD", 
+            "WBTC-USD", "AAVE-USD", "USDC-USD", "EOS-USD", "TRX-USD", "FIL-USD",
+            "XTZ-USD", "NEO-USD", "ATOM1-USD", "BSV-USD", "MKR-USD", "COMP-USD", 
+            "DASH-USD", "ETC-USD", "ZEC-USD", "OMG-USD", "SUSHI-USD", "YFI-USD", 
+            "SNX-USD", "UMA-USD", "REN-USD", "CRV-USD"]
+        coin_data = [{"name": coin} for coin in coins]
+        return Response(data=coin_data, status=status.HTTP_200_OK)
