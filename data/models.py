@@ -55,6 +55,8 @@ class Trade(models.Model):
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
     balance = models.IntegerField(default=0)
+    todays_balance = models.IntegerField(default=0)
+
 
 
 class WalletHistory(models.Model):
@@ -74,6 +76,13 @@ class Challange(models.Model):
         ('2', 'Level Two'),
         ('3', 'Level Three'),
     )
+    STATUS = (
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('expired', 'Expired')
+    )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='challange')
     challange_level = models.CharField(
         max_length=1, choices=LEVEL_CHOICES, default='1')
@@ -81,6 +90,8 @@ class Challange(models.Model):
     percent = models.DecimalField(max_digits=20, decimal_places=2,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     start_day_assets = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=10, choices=STATUS, default='active', null=True, blank=True)
 
 
 class AccountGrowth(models.Model):

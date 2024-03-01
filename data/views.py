@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView, CreateAPIView, UpdateAPIView, RetrieveAPIView
     )
@@ -326,11 +327,36 @@ class PlaceOrderView(CreateAPIView):
     permission_classes = []
     serializer_class = OrderSerializer
 
+    def get_user_wallet(self):
+        try:
+            wallet = Wallet.objects.get(user=self.request.user)
+            return wallet
+        except Exception as e:
+            raise ValidationError(
+                {"error": f"Error getting user's wallet:{str(e)}"}
+            )
+
+    def check_requested_amount(self, requested_amount):
+        if requested_amount <= 0:
+            raise ValidationError({"error": "The amount must be greater than zero."})
+        wallet = self.get_user_wallet()
+        if requested_amount > wallet.balance:
+            raise ValidationError({"error":"Insufficient funds."})
+        
+    def update_wallet_balance(self, requested_amount):
+        wallet = self.get_user_wallet()
+        wallet.balance -= requested_amount
+        wallet.save()
+        
     def post(self, request, *args, **kwargs):
         try:
             order_type = self.request.data['order_type']
             symbol = self.request.data['symbol']
             price = self.request.data['price']
+            
+            # NEW
+            requested_amount = self.request.data['amount']
+            self.check_requested_amount(requested_amount)
 
             exit_price = float(yf.Ticker(symbol).history()['Close'][-1])
 
@@ -352,11 +378,13 @@ class PlaceOrderView(CreateAPIView):
                 return Response({
                     "error": "When registering a Sell Stop order, the currency amount must be lower than the current price"})
             else:
-                (doc, created) = Order.objects.get_or_create(user=request.user, order_type=order_type, price=price,
-                                                             amount=self.request.data['amount'], symbol=symbol)
+                (doc, created) = Order.objects.get_or_create(
+                    user=request.user, order_type=order_type, price=price,
+                    amount=self.request.data['amount'], symbol=symbol)
                 serializer = OrderSerializer(doc, data=request.data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+                self.update_wallet_balance(requested_amount)
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         except KeyError:
             return Response({"error": "Required data is missing."},
@@ -390,4 +418,7 @@ class DeleteOrder(APIView):
             return Response({"error": "سفارش مورد نظر یافت نشد."})
         else:
             order.update(is_delete=True)
-            return Response({"condition": "سفارش شما با موفقیت حذف شد"}, status=status.HTTP_200_OK)
+            return Response(
+                {"condition": "سفارش شما با موفقیت حذف شد"}, 
+                status=status.HTTP_200_OK
+                )

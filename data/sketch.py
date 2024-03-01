@@ -2,9 +2,12 @@ from django.utils import timezone
 from .models import Trade, Order
 
 
-def calculate_value(trade, price):
-    initial_value = trade.amount * trade.entry_price * trade.leverage
+    
+     
 
+
+def update_trades(trade, price):
+    initial_value = trade.amount * trade.entry_price * trade.leverage
     if trade.direction == 'LONG':
         new_value = trade.amount * price * trade.leverage
         # Check if stop_loss and take_profit are not None before comparing
@@ -35,7 +38,7 @@ def calculate_value(trade, price):
         trade.exit_price = price
     elif trade.trade_status == 'CLOSED':
         trade.value = trade.exit_price * trade.amount * trade.leverage
-    elif trade.trade_status == 'Open':
+    elif trade.trade_status == 'OPEN':
         trade.value = new_value
     # Save changes to the database
     trade.save(update_fields=['value', 'trade_status', 'exit_price', 'pnl'])
@@ -54,10 +57,10 @@ def update_order(order, current_price):
         order.save()
 
 
-def update_trades(symbol, price):
+def price_changed(symbol, price):
     trades = Trade.objects.filter(symbol=symbol, trade_status='OPEN')
     for trade in trades:
-        calculate_value(trade, price)
+        update_trades(trade, price)
 
     orders = Order.objects.filter(symbol=symbol, is_done=False, is_delete=False)
     for order in orders:
