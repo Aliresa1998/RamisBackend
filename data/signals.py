@@ -14,41 +14,53 @@ def get_user_wallet(user):
         return None   
 
 
+# @receiver(post_save, sender=Trade)
+# def calculate_and_check_margin(sender, instance, created, **kwargs):
+    
+
+
+def update_user_wallet(wallet, value):
+    wallet.balance += value
+    wallet.save()
+
+
 @receiver(post_save, sender=Trade)
-def calculate_and_check_margin(sender, instance, created, **kwargs):
+def update_wallet(sender, instance, created, **kwargs):
     if created:
         instance.value = instance.amount * instance.entry_price * instance.leverage
         instance.liquidation_amount = instance.amount * instance.entry_price
         instance.save()
 
-
-@receiver(post_save, sender=Trade)
-def update_wallet(sender, instance, created, **kwargs):
     if instance.trade_status == 'CLOSED':
         wallet = get_user_wallet(instance.user)
-        wallet.balance += instance.value
-        wallet.save()
+        update_user_wallet(wallet, instance.pnl)
+
+    # elif instance.trade_status == 'Liquidated':
+    #     wallet = get_user_wallet(instance.user)
+    #     update_user_wallet(wallet, -instance.liquidation_amount)
+
+    # elif instance.trade_status == 'OPEN':
+        
 
 
-@receiver(post_save, sender=Order)
-def order_post_save(sender, instance, **kwargs):
-    if instance.is_done:
-        handle_completed_order(instance)
+# @receiver(post_save, sender=Order)
+# def order_post_save(sender, instance, **kwargs):
+#     if instance.is_done:
+#         handle_completed_order(instance)
 
 
-def handle_completed_order(order):
-    if not order.is_done or order.is_delete:
-        return
+# def handle_completed_order(order):
+#     if not order.is_done or order.is_delete:
+#         return
 
-    wallet = get_user_wallet(order.user)
+#     wallet = get_user_wallet(order.user)
     
-    if order.order_type in ['BUY_LIMIT', 'BUY_STOP']:
-        total_cost = order.price * order.amount
-        wallet.balance -= total_cost
-    elif order.order_type in ['SELL_LIMIT', 'SELL_STOP']:
-        total_gain = order.price * order.amount
-        wallet.balance += total_gain
-    wallet.save()
+#     if order.order_type in ['BUY_LIMIT', 'BUY_STOP']:
+#         total_cost = order.price * order.amount
+#         update_user_wallet(wallet, -total_cost)
+#     elif order.order_type in ['SELL_LIMIT', 'SELL_STOP']:
+#         total_gain = order.price * order.amount
+#         update_user_wallet(wallet, total_gain)
 
 
 @receiver(post_save, sender=Wallet)

@@ -6,6 +6,29 @@ import yfinance as yf
 import decimal
 
 
+def get_user_total_balance(user):
+    wallet = Wallet.objects.get(user=user)
+    trades = Trade.objects.filter(user=user, trade_status='OPEN')
+    orders = Order.objects.filter(user=user, is_done=True)
+    total_balance = 0
+    for trade in trades:
+        total_balance += trade.pnl
+    for order in orders:
+        if order.order_type in ['BUY_LIMIT', 'BUY_STOP']:
+            total_balance -= order.price * order.amount
+        elif order.order_type in ['SELL_LIMIT', 'SELL_STOP']:
+            total_balance += order.price * order.amount
+
+    return wallet.balance
+
+
+def save_daily_balance():
+    users = User.objects.all()
+    for user in users:
+        wallet = Wallet.objects.get(user=user)
+        AccountGrowth.objects.create(user=user, balance=wallet.balance)
+
+
 def calculate_pnl(trade, exit_price):
     if exit_price <= trade.stop_loss:
         pnl = (exit_price - trade.entry_price) * trade.amount
@@ -94,7 +117,8 @@ def buy_limit():
     for order in orders:
         entry_price = float(yf.Ticker(order.symbol).history()['Close'][-1])
         if order.price >= entry_price:
-            Trade.objects.create(user=order.user, symbol=order.symbol, amount=order.amount, direction="LONG",
+            Trade.objects.create(
+                user=order.user, symbol=order.symbol, amount=order.amount, direction="LONG",
                                  entry_price=entry_price)
 
 
@@ -104,7 +128,8 @@ def sell_limit():
     for order in orders:
         entry_price = float(yf.Ticker(order.symbol).history()['Close'][-1])
         if order.price <= entry_price:
-            Trade.objects.create(user=order.user, symbol=order.symbol, amount=order.amount, direction="SHORT",
+            Trade.objects.create(
+                user=order.user, symbol=order.symbol, amount=order.amount, direction="SHORT",
                                  entry_price=entry_price)
 
 
@@ -114,7 +139,8 @@ def sell_stop():
     for order in orders:
         entry_price = float(yf.Ticker(order.symbol).history()['Close'][-1])
         if order.price >= entry_price:
-            Trade.objects.create(user=order.user, symbol=order.symbol, amount=order.amount, direction="SHORT",
+            Trade.objects.create(
+                user=order.user, symbol=order.symbol, amount=order.amount, direction="SHORT",
                                  entry_price=entry_price)
 
 

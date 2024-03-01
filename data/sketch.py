@@ -40,6 +40,7 @@ def update_trades(trade, price):
         trade.value = trade.exit_price * trade.amount * trade.leverage
     elif trade.trade_status == 'OPEN':
         trade.value = new_value
+        trade.pnl = trade.value - initial_value
     # Save changes to the database
     trade.save(update_fields=['value', 'trade_status', 'exit_price', 'pnl'])
 
