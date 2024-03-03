@@ -1,6 +1,9 @@
 import os
 import django
+import sys
 
+# Add your project to the PYTHONPATH
+sys.path.append('/home/RamisBackend')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'RamisBackend.settings')
 django.setup()
 import yliveticker
