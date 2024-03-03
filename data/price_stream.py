@@ -1,5 +1,5 @@
 import yliveticker
-from .sketch import price_changed
+from data.sketch import price_changed
 import logging
 
 logger = logging.getLogger(__name__)
