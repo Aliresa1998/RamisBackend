@@ -1,25 +1,92 @@
+import decimal, logging
 from datetime import datetime
 from celery import shared_task
 from .models import Trade, Wallet, AccountGrowth, Order, Challange
 from django.contrib.auth.models import User
 import yfinance as yf
-import decimal
+
+logger = logging.getLogger(__name__)
 
 
-def get_user_total_balance(user):
-    wallet = Wallet.objects.get(user=user)
-    trades = Trade.objects.filter(user=user, trade_status='OPEN')
-    orders = Order.objects.filter(user=user, is_done=True)
-    total_balance = 0
-    for trade in trades:
-        total_balance += trade.pnl
-    for order in orders:
-        if order.order_type in ['BUY_LIMIT', 'BUY_STOP']:
-            total_balance -= order.price * order.amount
-        elif order.order_type in ['SELL_LIMIT', 'SELL_STOP']:
-            total_balance += order.price * order.amount
+def get_active_challenges():
+    try:
+        challenges = Challange.objects.filter(status='active')
+        logger.info("Fetched active challenges successfully.")
+        return challenges
+    except Exception as e:
+        logger.error(f"Error fetching active challenges: {e}")
+        return None
 
-    return wallet.balance
+
+def calculate_trade_balance(user):
+    try:
+        trades = Trade.objects.filter(user=user, trade_status='OPEN')
+        trade_balance = sum(trade.pnl for trade in trades)
+        logger.info(f"Calculated trade balance for user {user}: {trade_balance}")
+        return trade_balance
+    except Exception as e:
+        logger.error(f"Error calculating trade balance for user {user}: {e}")
+        return 0
+
+
+def calculate_order_balance(user):
+    try:
+        orders = Order.objects.filter(user=user, is_done=True)
+        order_balance = 0
+        for order in orders:
+            if order.order_type in ['BUY_LIMIT', 'BUY_STOP']:
+                order_balance -= order.price * order.amount
+            elif order.order_type in ['SELL_LIMIT', 'SELL_STOP']:
+                order_balance += order.price * order.amount
+        logger.info(f"Calculated order balance for user {user}: {order_balance}")
+        return order_balance
+    except Exception as e:
+        logger.error(f"Error calculating order balance for user {user}: {e}")
+        return 0
+
+
+def get_wallet_balance(user):
+    try:
+        wallet = Wallet.objects.get(user=user)
+        logger.info(f"Fetched wallet balance for user {user}: {wallet.balance}")
+        return wallet.balance
+    except Exception as e:
+        logger.error(f"Error fetching wallet balance for user {user}: {e}")
+        return 0
+
+
+def create_account_growth_entry(user, total_balance):
+    try:
+        AccountGrowth.objects.create(user=user, balance=total_balance)
+        logger.info(f"Created account growth entry for user {user}.")
+    except Exception as e:
+        logger.error(f"Error creating account growth entry for user {user}: {e}")
+
+
+def check_challenge_date():
+    challenges = Challange.objects.all(status='active')
+    for challenge in challenges:
+        if challenge.created_at + challenge.duration < datetime.now():
+            challenge.status = 'expired'
+            challenge.save()
+    
+
+@shared_task
+def get_user_total_balance():
+    challenges = get_active_challenges()
+    if challenges:
+        for challenge in challenges:
+            try:
+                trade_balance = calculate_trade_balance(challenge.user)
+                order_balance = calculate_order_balance(challenge.user)
+                wallet_balance = get_wallet_balance(challenge.user)
+                total_balance = trade_balance + order_balance + wallet_balance
+                create_account_growth_entry(challenge.user, total_balance)
+            except Exception as e:
+                logger.error(f"Error processing challenge for user {challenge.user}: {e}")
+    else:
+        logger.info("No active challenges found.")
+
 
 
 def save_daily_balance():

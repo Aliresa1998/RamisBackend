@@ -41,11 +41,11 @@ def update_trades(trade, price):
     elif trade.trade_status == 'OPEN':
         trade.value = new_value
         trade.pnl = trade.value - initial_value
-    # Save changes to the database
     trade.save(update_fields=['value', 'trade_status', 'exit_price', 'pnl'])
 
 
 def update_order(order, current_price):
+    
     if not order.is_done and not order.is_delete:
         if order.order_type == 'BUY_LIMIT' and current_price <= order.price:
             order.is_done = True
@@ -55,7 +55,10 @@ def update_order(order, current_price):
             order.is_done = True
         elif order.order_type == 'SELL_STOP' and current_price <= order.price:
             order.is_done = True
-        order.save()
+        order.value = order.amount * current_price
+    elif order.is_done:
+        order.value = order.amount * current_price
+    order.save()
 
 
 def price_changed(symbol, price):
@@ -63,6 +66,6 @@ def price_changed(symbol, price):
     for trade in trades:
         update_trades(trade, price)
 
-    orders = Order.objects.filter(symbol=symbol, is_done=False, is_delete=False)
+    orders = Order.objects.filter(symbol=symbol, is_delete=False)
     for order in orders:
         update_order(order, price)

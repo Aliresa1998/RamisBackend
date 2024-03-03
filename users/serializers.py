@@ -6,7 +6,9 @@ from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSer
 from .models import CustomUser, Message, Ticket, User, Document, Plan, CryptoPayment
 from dj_rest_auth.serializers import PasswordChangeSerializer
 from data.models import WalletHistory
-from data.serializers import ChallangeSerializer, GetWalletSerializer, HistorySerializer, WalletHistorySerializer
+from data.serializers import (
+    ChallangeSerializer, GetWalletSerializer, HistorySerializer, 
+    WalletHistorySerializer)
 
 User = get_user_model()
 

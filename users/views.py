@@ -10,8 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView, \
-    RetrieveUpdateAPIView
+from rest_framework.generics import (
+    ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView, 
+    RetrieveUpdateAPIView)
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from xhtml2pdf import pisa

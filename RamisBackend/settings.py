@@ -210,3 +210,36 @@ XHTML2PDF = {
     'URI_INCLUDES': [],
     'CSS_FILE': os.path.join(BASE_DIR, 'static', 'styles.css'),
 }
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "root": {"level": "INFO", "handlers": ["file"]},
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": 'logs.log',
+            "formatter": "app",
+        },
+        "console": {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file", 'console'],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+    "formatters": {
+        "app": {
+            "format": u"%(asctime)s [%(levelname)-8s] %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+}
+
