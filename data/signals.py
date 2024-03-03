@@ -107,20 +107,21 @@ def check_daily_profit_loss(user, challenge, account_growth, total_balance):
 
 @receiver(post_save, sender=Wallet)
 def check_challenge(sender, instance, created, **kwargs):
-    user = instance.user
-    challenge = get_user_challenge(user)
-    if not challenge:
-        return
-    
-    total_balance = get_user_total_balance(user)
-    account_growth = get_user_account_growth(user)
-    
-    if account_growth and challenge.challange_level != '3':
-        check_daily_profit_loss(user, challenge, account_growth, total_balance)
-    
-    # calulate total profit loss    
-    total_profit_loss = (total_balance - challenge.start_day_assets) /\
-                    challenge.start_day_assets * 100
-    check_total_profit_loss(user, challenge, total_profit_loss)
+    if not created:
+        user = instance.user
+        challenge = get_user_challenge(user)
+        if not challenge:
+            return
+        
+        total_balance = get_user_total_balance(user)
+        account_growth = get_user_account_growth(user)
+        
+        if account_growth and challenge.challange_level != '3':
+            check_daily_profit_loss(user, challenge, account_growth, total_balance)
+        
+        # calulate total profit loss    
+        total_profit_loss = (total_balance - challenge.start_day_assets) /\
+                        challenge.start_day_assets * 100
+        check_total_profit_loss(user, challenge, total_profit_loss)
 
     
