@@ -1,3 +1,8 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'RamisBackend.settings')
+django.setup()
 import yliveticker
 from data.sketch import price_changed
 import logging
