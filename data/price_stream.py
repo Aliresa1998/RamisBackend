@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def on_new_msg(ws, msg):
     print(msg['id'], msg['price'])
-    logger.info(f"Price of {msg['id']} is {msg['price']}")
+    # logger.info(f"Price of {msg['id']} is {msg['price']}")
     price_changed(msg['id'], msg['price'])
 
 
