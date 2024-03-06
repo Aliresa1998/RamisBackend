@@ -363,7 +363,7 @@ class IsAdminView(ListAPIView):
     def get(self, request, *args, **kwargs):
         (user, created) = CustomUser.objects.get_or_create(user_id=request.user.id)
         is_admin = user.is_admin
-        return Response(is_admin, status=status.HTTP_200_OK)
+        return Response({"result": is_admin}, status=status.HTTP_200_OK)
 
 
 class AdminAllPlanView(ListAPIView):
