@@ -3,7 +3,7 @@ from users.models import CustomUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from decimal import Decimal
-from .models import Trade, Wallet, Order, Challange, AccountGrowth
+from .models import Trade, Wallet, Order, Challange, AccountGrowth, WalletSnapShot
 
 
 def get_user_wallet(user):
@@ -19,6 +19,11 @@ def update_user_wallet(wallet, value):
     wallet.save()
 
 
+def create_wallet_snapshot(user):
+    wallet = get_user_wallet(user)
+    WalletSnapShot.objects.create(user=user, balance=wallet.balance)
+
+
 @receiver(post_save, sender=Trade)
 def update_wallet(sender, instance, created, **kwargs):
     if created:
@@ -29,17 +34,13 @@ def update_wallet(sender, instance, created, **kwargs):
     if instance.trade_status == 'CLOSED':
         wallet = get_user_wallet(instance.user)
         update_user_wallet(wallet, instance.pnl)
-        # check_challenge(instance.user)
-    
-    # if instance.trade_status == 'Liquidated':
-    #     wallet = get_user_wallet(instance.user)
-    #     # update_user_wallet(wallet, instance.pnl)
-    #     check_challenge(instance.user)
+        create_wallet_snapshot(instance.user)
 
 
-# @receiver(post_save, sender=Order)
-# def update_wallet_order(sender, instance, created, **kwargs):
-#     check_challenge(instance.user)
+@receiver(post_save, sender=Order)
+def order_post_save(sender, instance, created, **kwargs):
+    if instance.is_done:
+        create_wallet_snapshot(instance.user)
 
 
 @receiver(post_save, sender=Wallet)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AccountGrowth, Trade, Order, Challange, Wallet
+from .models import AccountGrowth, Trade, Order, Challange, Wallet, WalletSnapShot
 
 
 # Register your models here.]@admin.register(CustomUser)
@@ -13,3 +13,4 @@ admin.site.register(Trade)
 admin.site.register(Order)
 admin.site.register(Wallet)
 admin.site.register(Challange)
+admin.site.register(WalletSnapShot)

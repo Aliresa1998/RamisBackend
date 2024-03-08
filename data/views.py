@@ -14,10 +14,10 @@ from .serializers import (
     AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, 
     HistorySerializer, WalletHistorySerializer, ChallangeSerializer, 
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer, 
-    OrderSerializer
+    OrderSerializer, WalletSnapShotListSerializer
     )
 from .models import (
-    AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order
+    AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order, WalletSnapShot
     )
 from users.permissions import AdminAccessPermission
 from users.pagination import CustomPagination
@@ -438,3 +438,39 @@ class GetAllCoins(APIView):
             "SNX-USD", "UMA-USD", "REN-USD", "CRV-USD"]
         coin_data = [{"name": coin} for coin in coins]
         return Response(data=coin_data, status=status.HTTP_200_OK)
+
+
+
+
+class ListWalletSnapShot(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = WalletSnapShotListSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        queryset = WalletSnapShot.objects.filter(
+            user=self.request.user).order_by('-created')
+        queryset = queryset[:20]
+        return queryset
+
+from .signals import get_user_wallet
+
+
+class UserDeposit(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def calculate_user_deposit(self, user):
+        wallet = get_user_wallet(user)
+        return wallet.balance * .8
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        challenge = Challange.objects.get(user=user)
+        if challenge.challange_level != '3':
+            return Response({"detail":"0"})
+        elif challenge.challange_level == '3':
+            available_deposit = self.calculate_user_deposit(user)
+            return Response({"detail":available_deposit})
+        else:
+            return Response({"detail":"0"})
+       

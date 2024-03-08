@@ -1,6 +1,9 @@
 import decimal
 from rest_framework import serializers, status
-from .models import AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order
+from .models import (
+    AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, 
+    Order, WalletSnapShot
+    )
 import yfinance as yf
 from rest_framework.response import Response
 from datetime import timedelta
@@ -156,3 +159,9 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ["id", 'user', 'order_type', 'price', 'amount', 'symbol', "is_delete"]
+
+
+class WalletSnapShotListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WalletSnapShot
+        fields = ['balance', 'created']
