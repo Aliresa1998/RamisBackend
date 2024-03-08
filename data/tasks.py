@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 def get_active_challenges():
     try:
         challenges = Challange.objects.filter(status='active')
-        logger.info("Fetched active challenges successfully.")
+        logger.info("'------------Fetched active challenges successfully.")
         return challenges
     except Exception as e:
-        logger.error(f"Error fetching active challenges: {e}")
+        logger.error(f"'------------Error fetching active challenges: {e}")
         return None
 
 
@@ -74,17 +74,20 @@ def check_challenge_date():
 
 @shared_task
 def get_user_total_balance():
+    logger.info(f'------------get_user_total_balance')
     challenges = get_active_challenges()
+    logger.info(f'------------get_user_total_balance after get_active_challenges')
     if challenges:
         for challenge in challenges:
             try:
+                logger.info(f'------------inside loop')
                 trade_balance = calculate_trade_balance(challenge.user)
                 order_balance = calculate_order_balance(challenge.user)
                 wallet_balance = get_wallet_balance(challenge.user)
                 total_balance = trade_balance + order_balance + wallet_balance
                 create_account_growth_entry(challenge.user, total_balance)
             except Exception as e:
-                logger.error(f"Error processing challenge for user {challenge.user}: {e}")
+                logger.error(f"'------------Error processing challenge for user {challenge.user}: {e}")
     else:
         logger.info("No active challenges found.")
 
