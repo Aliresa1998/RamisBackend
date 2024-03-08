@@ -17,7 +17,7 @@ run_time = datetime.now() + timedelta(minutes=2)
 # Schedule
 app.conf.beat_schedule = {
     'get_user_total_balance_every_midnight': {
-        'task': 'your_app_name.tasks.get_user_total_balance',
+        'task': 'data.tasks.get_user_total_balance',
         'schedule': run_time,
         # 'schedule': crontab(hour=0, minute=0),
         # Optionally, you can add arguments to 'args': (arg1, arg2...)
