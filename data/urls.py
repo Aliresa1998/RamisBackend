@@ -4,7 +4,7 @@ from .views import (
     OhlcData, CryptoList, CreateTrade, Historytrade, UpdateHistoryTrade, 
     CreateWallet, WalletHistoryView, WithdrawWallet, GetWallet, PlaceOrderView, 
     GetOrder, DeleteOrder, CloseHistoryTrade, GetAllCoins, ListWalletSnapShot,
-    UserDeposit)
+    UserDeposit, UserSummary)
 
 urlpatterns = [
     path('data/', OhlcData.as_view(), name='data'),
@@ -27,4 +27,5 @@ urlpatterns = [
     path('get-all-coins/', GetAllCoins.as_view(), name='get-all-coins'),
     path('wallet-snapshot-list/', ListWalletSnapShot.as_view(), name='wallet-snapshot-list'),
     path('user-deposit/', UserDeposit.as_view(), name='user-deposit'),
+    path('user-summary/<int:pk>/', UserSummary.as_view())
 ]

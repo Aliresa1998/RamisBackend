@@ -8,7 +8,7 @@ import yfinance as yf
 from rest_framework.response import Response
 from datetime import timedelta
 from django.utils import timezone
-
+from django.contrib.auth import get_user_model
 
 class DataSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=250)
@@ -165,3 +165,63 @@ class WalletSnapShotListSerializer(serializers.ModelSerializer):
     class Meta:
         model = WalletSnapShot
         fields = ['balance', 'created']
+
+
+class USTradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trade
+        fields = '__all__'
+
+class USWalletHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WalletHistory
+        fields = '__all__'
+
+class USWalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = '__all__'
+
+class USChallangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Challange
+        fields = '__all__'
+
+class USOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+class UserSummarySerializer(serializers.ModelSerializer):
+    trades = serializers.SerializerMethodField()
+    wallet_history = serializers.SerializerMethodField()
+    wallet = serializers.SerializerMethodField()
+    challange = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        exclude = [
+            'password', 'is_staff', 'is_active', 'groups', 'user_permissions'
+            
+            ]
+
+    def get_trades(self, obj):
+        trades = Trade.objects.filter(user=obj)
+        return USTradeSerializer(trades, many=True).data
+
+    def get_wallet_history(self, obj):
+        history = WalletHistory.objects.filter(user=obj)
+        return USWalletHistorySerializer(history, many=True).data
+
+    def get_wallet(self, obj):
+        wallet, created = Wallet.objects.get_or_create(user=obj)
+        return USWalletSerializer(wallet).data
+
+    def get_challange(self, obj):
+        challange, created = Challange.objects.get_or_create(user=obj)
+        return USChallangeSerializer(challange).data
+
+    def get_orders(self, obj):
+        orders = Order.objects.filter(user=obj)
+        return USOrderSerializer(orders, many=True).data

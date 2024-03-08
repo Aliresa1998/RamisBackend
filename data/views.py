@@ -14,14 +14,14 @@ from .serializers import (
     AccountGrowthSerializer, DataSerializer, CryptoSerializer, TradeSerializer, 
     HistorySerializer, WalletHistorySerializer, ChallangeSerializer, 
     UpdateWalletSerializer, GetWalletSerializer, WithdrawSerializer, 
-    OrderSerializer, WalletSnapShotListSerializer
+    OrderSerializer, WalletSnapShotListSerializer, UserSummarySerializer
     )
 from .models import (
     AccountGrowth, Challange, Crypto, Trade, Wallet, WalletHistory, Order, WalletSnapShot
     )
 from users.permissions import AdminAccessPermission
 from users.pagination import CustomPagination
-
+from django.contrib.auth import get_user_model
 
 
 class OhlcData(APIView):
@@ -474,3 +474,13 @@ class UserDeposit(APIView):
         else:
             return Response({"detail":"0"})
        
+
+##########################
+####### DASHBOARD ########
+##########################
+        
+class UserSummary(RetrieveAPIView):
+    permission_classes = [AdminAccessPermission, ]
+    serializer_class = UserSummarySerializer
+    queryset = get_user_model().objects.all()
+
