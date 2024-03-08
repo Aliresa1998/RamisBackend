@@ -72,7 +72,6 @@ def check_challenge_date():
             challenge.save()
     
 
-@shared_task
 def get_user_total_balance():
     logger.info(f'------------get_user_total_balance')
     challenges = get_active_challenges()
