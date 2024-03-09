@@ -13,6 +13,7 @@ class Plan(models.Model):
     plan = models.CharField(max_length=255)
     amount = models.IntegerField(default=0)
     is_delete = models.BooleanField(default=False)
+    # remove
     duration = models.IntegerField(null=True, blank=True) 
     target = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
     wallet_address = models.CharField(max_length=255, null=True, blank=True)

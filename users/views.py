@@ -585,28 +585,42 @@ class GetCryptoPaymentView(ListAPIView):
             return CryptoPayment.objects.all()
 
 
-class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
+# class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
+#     permission_classes = [IsAuthenticated, AdminAccessPermission]
+#     serializer_class = UpdateCryptoPaymentSerializer
+
+#     def get_queryset(self):
+#         return CryptoPayment.objects.filter(id=self.kwargs['pk'])
+
+#     def update(self, request, *args, **kwargs):
+#         data = self.get_queryset().get()
+#         if data.status == 2:
+#             return Response({"error": "پرداخت شما از قبل تایید شده"})
+#         serializers = UpdateCryptoPaymentSerializer(data=request.data)
+#         serializers.is_valid()
+#         data.status = serializers.validated_data['status']
+#         data.save()
+
+#         if data.status == 1:
+#             Challange.objects.filter(user=data.user).update(total_assets=data.plan.amount)
+#             user = User.objects.filter(id=data.user_id).first()
+#             wallet = Wallet.objects.filter(user=user).first()
+#             balance = wallet.balance + data.plan.amount
+#             wallet.balance = balance
+#             CustomUser.objects.filter(user=user).update(plan=data.plan)
+#             wallet.save()
+#         return Response({"text": "عملیات با موفقیت انجام شد"})
+
+
+class AcceptPlan(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, AdminAccessPermission]
     serializer_class = UpdateCryptoPaymentSerializer
+    queryset = CryptoPayment.objects.all()
 
-    def get_queryset(self):
-        return CryptoPayment.objects.filter(id=self.kwargs['pk'])
+    def perform_update(self, serializer):
+        crypto_payment = serializer.save()
+        if crypto_payment.status == 2:
+            custom_user = CustomUser.objects.get(user=crypto_payment.user)
+            custom_user.plan = crypto_payment.plan
+            custom_user.save()
 
-    def update(self, request, *args, **kwargs):
-        data = self.get_queryset().get()
-        if data.status == 2:
-            return Response({"error": "پرداخت شما از قبل تایید شده"})
-        serializers = UpdateCryptoPaymentSerializer(data=request.data)
-        serializers.is_valid()
-        data.status = serializers.validated_data['status']
-        data.save()
-
-        if data.status == 1:
-            Challange.objects.filter(user=data.user).update(total_assets=data.plan.amount)
-            user = User.objects.filter(id=data.user_id).first()
-            wallet = Wallet.objects.filter(user=user).first()
-            balance = wallet.balance + data.plan.amount
-            wallet.balance = balance
-            CustomUser.objects.filter(user=user).update(plan=data.plan)
-            wallet.save()
-        return Response({"text": "عملیات با موفقیت انجام شد"})

@@ -10,7 +10,7 @@ from .views import AdminChangePassowrdView, AdminCloseTicketView, AdminCreateTic
     AdminEditUserNameView, TicketIsReadView, UserCloseTicketView, UserCreateTicketView, UserTicketMessageView, \
     GetTicketBYID, ProfilePictureUpdate, GetInboxByID, IsAdminView, Unread, PlanView, GetPlan, GetDocumentById, \
     PlanVerifyView, DetailPlanView, AdminSinglePlanView, CreatePlanView, UserHavePlanView, CreateCryptoPaymentView, \
-    GetCryptoPaymentView, UpdateCryptoPaymentView
+    GetCryptoPaymentView,  AcceptPlan
 
 router = routers.DefaultRouter()
 router.register('', ProfileViewSet, basename='profile')
@@ -60,8 +60,9 @@ urlpatterns = [
           VerifyEmailView.as_view(), name='account_email_verification_sent'),
      path('create-crypto-payment/', CreateCryptoPaymentView.as_view()),
      path('get-crypto-payment/', GetCryptoPaymentView.as_view()),
-     path('update-crypto-payment/<int:pk>', UpdateCryptoPaymentView.as_view()),
+     # path('update-crypto-payment/<int:pk>', UpdateCryptoPaymentView.as_view()),
      re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$',
                VerifyEmailView.as_view(), name='account_confirm_email'),
+     path('accept-plan/<int:pk>/', AcceptPlan.as_view())
 
 ] + router.urls
