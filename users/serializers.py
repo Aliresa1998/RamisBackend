@@ -281,12 +281,11 @@ class UserCloseTicketSerializer(serializers.ModelSerializer):
 
 
 class AdminCloseTicketSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=True)
     status = serializers.CharField(required=True)
 
     class Meta:
         model = Ticket
-        fields = ['id', 'status']
+        fields = ['status']
 
 
 class TicketIsReadSerializer(serializers.ModelSerializer):

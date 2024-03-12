@@ -263,17 +263,7 @@ class AdminCloseTicketView(UpdateAPIView):
     permission_classes = [AdminAccessPermission]
     queryset = Ticket.objects.exclude(body=[]).exclude(body=None).all()
 
-    def put(self, request, *args, **kwargs):
-        serializer = AdminCloseTicketSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        ticket_status = str()
-        ticket_status = 'بسته' if serializer.data['status'] == 'close' else 'باز'
-        try:
-            Ticket.objects.filter(
-                id=serializer.data['id']).update(status=serializer.data['status'])
-            return Response({'detail': f'تیکت {ticket_status} شد'}, status=status.HTTP_200_OK)
-        except:
-            return Response({'detail': 'آیدی تیکت درست نمیباشد.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class TicketIsReadView(UpdateAPIView):
