@@ -463,14 +463,16 @@ class ListWalletSnapShot(ListAPIView):
         return queryset
 
 from .signals import get_user_wallet
-
+from users.models import CustomUser
 
 class UserDeposit(APIView):
     permission_classes = [IsAuthenticated]
 
     def calculate_user_deposit(self, user):
+        custom_user = CustomUser.objects.get(user=user)
+        plan = custom_user.plan
         wallet = get_user_wallet(user)
-        return wallet.balance * .8
+        return (wallet.balance - plan.amount) * .8
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
