@@ -389,7 +389,7 @@ class DetailPlanSerializer(serializers.ModelSerializer):
 class PlanListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
-        fields = ['plan', 'amount', 'id']
+        fields = ['plan', 'amount', 'id', 'price']
 
 
 class CryptoPaymentSerializer(serializers.ModelSerializer):

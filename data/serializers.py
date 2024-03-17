@@ -225,3 +225,8 @@ class UserSummarySerializer(serializers.ModelSerializer):
     def get_orders(self, obj):
         orders = Order.objects.filter(user=obj)
         return USOrderSerializer(orders, many=True).data
+    
+class CloseHistoryTradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trade
+        fields = ['trade_status']

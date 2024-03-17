@@ -36,6 +36,7 @@ from django.conf import settings
 import requests
 import json
 import redis
+from data.signals import get_user_wallet
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
@@ -612,15 +613,29 @@ class GetCryptoPaymentView(ListAPIView):
 #         return Response({"text": "عملیات با موفقیت انجام شد"})
 
 
+
 class AcceptPlan(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, AdminAccessPermission]
     serializer_class = UpdateCryptoPaymentSerializer
     queryset = CryptoPayment.objects.all()
 
+    def update_user_wallet(self, user, amount):
+        wallet = get_user_wallet(user)
+        if wallet:
+            wallet.delete()
+        else:
+            wallet = Wallet.objects.create(user=user)
+        wallet.balance += amount
+        wallet.save()
+    
     def perform_update(self, serializer):
         crypto_payment = serializer.save()
         if crypto_payment.status == 2:
-            custom_user = CustomUser.objects.get(user=crypto_payment.user)
+            user = crypto_payment.user
+            custom_user = CustomUser.objects.get(user=user)
             custom_user.plan = crypto_payment.plan
+            self.update_user_wallet(user, crypto_payment.plan.amount)
             custom_user.save()
+
+            
 

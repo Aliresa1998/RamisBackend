@@ -5,18 +5,18 @@ from .models import CustomUser, Ticket
 from data.models import Challange, Wallet
 
 
-@receiver(post_save, sender=User)
-def CreateChallange(sender, instance, created, **kwargs):
-    if created:
-        user = instance
-        Challange.objects.create(user=user)
+# @receiver(post_save, sender=User)
+# def CreateChallange(sender, instance, created, **kwargs):
+#     if created:
+#         user = instance
+#         Challange.objects.create(user=user)
 
 
-@receiver(post_save, sender=User)
-def CreateWallet(sender, instance, created, **kwargs):
-    if created:
-        user = instance
-        Wallet.objects.create(user=user, balance=0)
+# @receiver(post_save, sender=User)
+# def CreateWallet(sender, instance, created, **kwargs):
+#     if created:
+#         user = instance
+#         Wallet.objects.create(user=user, balance=0)
 
 
 @receiver(post_save, sender=User)

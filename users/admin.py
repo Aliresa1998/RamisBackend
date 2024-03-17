@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Ticket, Plan
+from .models import CustomUser, Ticket, Plan, CryptoPayment
 
 
 @admin.register(CustomUser)
@@ -15,3 +15,5 @@ class TicketAdmin(admin.ModelAdmin):
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
     list_display = ['plan', 'amount', 'is_delete']
+
+admin.site.register(CryptoPayment)

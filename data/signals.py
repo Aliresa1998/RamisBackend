@@ -74,18 +74,30 @@ def get_user_total_balance(user):
     for trade in trades:
         total_balance += trade.value
     for order in orders:
-        if order.is_done:
-            total_balance += order.value
-        else:
-            total_balance += order.amount * order.price
+        try:
+            if order.is_done:
+                total_balance += order.value
+            else:
+                total_balance += order.amount * order.price
+        except:
+            pass
     return total_balance
+
+
+def challenge_failed(user):
+    challenge = get_user_challenge(user)
+    challenge.status = 'failed'
+    challenge.save()
+    wallet = get_user_wallet(user)
+    wallet.delete()
+    custom_user = CustomUser.objects.get(user=user)
+    custom_user.plan = None
+    custom_user.save()
 
 
 def check_daily_drawdown(user, daily_drawdown):
     if abs(daily_drawdown) > 15:
-        challenge = get_user_challenge(user)
-        challenge.status = 'failed'
-        challenge.save()
+        challenge_failed(user)
 
 
 def check_total_profit_loss(user, challenge, profit_loss):
@@ -94,8 +106,9 @@ def check_total_profit_loss(user, challenge, profit_loss):
             challenge.challange_level = '2'
             challenge.save()
         if profit_loss < -12:
-            challenge.status = 'failed'
-            challenge.save()
+            challenge_failed(user)
+            # challenge.status = 'failed'
+            # challenge.save()
 
 # daily draw down is 5
 
@@ -103,8 +116,10 @@ def check_daily_profit_loss(user, challenge, account_growth, total_balance):
     daily_profit_loss = (total_balance - account_growth.balance) /\
                     challenge.start_day_assets * 100
     if daily_profit_loss <= -5:
-        challenge.status = 'failed'
-        challenge.save()
+        challenge_failed(user)
+        # challenge.status = 'failed'
+        # challenge.save()
+
 
 @receiver(post_save, sender=Wallet)
 def check_challenge(sender, instance, created, **kwargs):
