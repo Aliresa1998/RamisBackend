@@ -1,4 +1,4 @@
-import decimal
+import decimal, logging
 from datetime import datetime
 import yfinance as yf
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -24,6 +24,7 @@ from users.permissions import AdminAccessPermission
 from users.pagination import CustomPagination
 from django.contrib.auth import get_user_model
 
+logger = logging.getLogger(__name__)
 
 class OhlcData(APIView):
     authentication_classes = []
@@ -406,6 +407,7 @@ class PlaceOrderView(CreateAPIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         except ValueError:
+            logger.error(f"Invalid data format or value. ee={str(e)}")
             return Response({"error": "Invalid data format or value."},
                             status=status.HTTP_400_BAD_REQUEST)
 
