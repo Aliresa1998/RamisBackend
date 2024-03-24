@@ -406,10 +406,10 @@ class PlaceOrderView(CreateAPIView):
             return Response({"error": "Required data is missing."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        except ValueError:
-            logger.error(f"Invalid data format or value. ee={str(e)}")
-            return Response({"error": "Invalid data format or value."},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # except ValueError:
+        #     logger.error(f"Invalid data format or value. ee={str(e)}")
+        #     return Response({"error": "Invalid data format or value."},
+        #                     status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({"error": "An error occurred: " + str(e)},
