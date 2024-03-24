@@ -27,7 +27,8 @@ def create_wallet_snapshot(user):
 @receiver(post_save, sender=Trade)
 def update_wallet(sender, instance, created, **kwargs):
     if created:
-        instance.value = instance.amount * instance.entry_price * instance.leverage
+        # instance.value = instance.amount * instance.entry_price * instance.leverage
+        instance.value = instance.amount * Decimal(instance.entry_price) * Decimal(instance.leverage)
         instance.liquidation_amount = instance.amount * instance.entry_price
         instance.save()
 
