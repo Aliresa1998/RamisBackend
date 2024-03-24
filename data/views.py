@@ -364,9 +364,14 @@ class PlaceOrderView(CreateAPIView):
             price = self.request.data['price']
             
             # NEW
-            requested_amount = self.request.data['amount']
+            # requested_amount = self.request.data['amount']
+            # requested_amount_balance = requested_amount * float(price)
+            # self.check_requested_amount(requested_amount_balance)
+
+            requested_amount = float(self.request.data['amount'])
             requested_amount_balance = requested_amount * float(price)
             self.check_requested_amount(requested_amount_balance)
+
 
             exit_price = float(yf.Ticker(symbol).history()['Close'][-1])
 
