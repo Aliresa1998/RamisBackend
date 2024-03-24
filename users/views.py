@@ -628,7 +628,9 @@ class AcceptPlan(RetrieveUpdateAPIView):
             # create challenge
             try:
                 challenge = Challange.objects.create(
-                    user=user, total_assets=crypto_payment.plan.amount)
+                    user=user, 
+                    total_assets=crypto_payment.plan.amount,
+                    start_day_assets=crypto_payment.plan.amount)
             except:
                 logger.error("Error in creating challenge")
             custom_user.save()
