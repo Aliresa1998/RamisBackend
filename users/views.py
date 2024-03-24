@@ -34,10 +34,10 @@ from azbankgateways.exceptions import AZBankGatewaysException
 from data.models import Wallet, Challange
 from django.conf import settings
 import requests
-import json
+import json, logging
 import redis
 from data.signals import get_user_wallet
-
+logger = logging.getLogger(__name__)
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 
@@ -625,6 +625,12 @@ class AcceptPlan(RetrieveUpdateAPIView):
             custom_user = CustomUser.objects.get(user=user)
             custom_user.plan = crypto_payment.plan
             self.update_user_wallet(user, crypto_payment.plan.amount)
+            # create challenge
+            try:
+                challenge = Challange.objects.create(
+                    user=user, total_assets=crypto_payment.plan.amount)
+            except:
+                logger.error("Error in creating challenge")
             custom_user.save()
 
             
