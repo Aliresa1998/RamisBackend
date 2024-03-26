@@ -571,9 +571,9 @@ class GetCryptoPaymentView(ListAPIView):
     def get_queryset(self):
         status = self.request.query_params.get('status', None)
         if status is not None:
-            return CryptoPayment.objects.filter(status=status)
+            return CryptoPayment.objects.filter(status=status).order_by('-id')
         else:
-            return CryptoPayment.objects.all()
+            return CryptoPayment.objects.all().order_by('-id')
 
 
 # class UpdateCryptoPaymentView(RetrieveUpdateAPIView):
