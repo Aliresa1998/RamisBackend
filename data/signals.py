@@ -15,8 +15,11 @@ def get_user_wallet(user):
 
 
 def update_user_wallet(wallet, value):
-    wallet.balance += value
-    wallet.save()
+    try:
+        wallet.balance += value
+        wallet.save()
+    except:
+        pass
 
 
 def create_wallet_snapshot(user):

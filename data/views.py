@@ -235,6 +235,7 @@ class UpdateHistoryTrade(UpdateAPIView):
 #             balance=new_wallet_balance)
 #         return Response({"detail": "موفقیت آمیز بود."}, status=status.HTTP_200_OK)
 
+
 class CloseHistoryTrade(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CloseHistoryTradeSerializer
