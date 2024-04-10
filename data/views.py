@@ -243,7 +243,7 @@ class CloseHistoryTrade(UpdateAPIView):
     def get_queryset(self):
         user = self.request.user
         return Trade.objects.filter(user=user)
-
+    
 
 class CreateWallet(UpdateAPIView):
     permission_classes = [IsAuthenticated]

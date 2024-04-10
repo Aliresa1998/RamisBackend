@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 from users.models import CustomUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -36,6 +37,7 @@ def update_wallet(sender, instance, created, **kwargs):
         instance.save()
 
     if instance.trade_status == 'CLOSED':
+        # instance.close_time = datetime.now()
         wallet = get_user_wallet(instance.user)
         update_user_wallet(wallet, instance.value)
         create_wallet_snapshot(instance.user)
