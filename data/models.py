@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -51,6 +52,7 @@ class Trade(models.Model):
 
     class Meta:
         ordering = ['-time']
+
     
 
 class Wallet(models.Model):

@@ -458,8 +458,13 @@ class GetAllCoins(APIView):
 
 
 
+class PaginateZero:
+    def paginate_queryset(self, queryset):
+        if self.paginator is None or int(self.request.query_params.get('page', 1)) == 0:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
 
-class ListWalletSnapShot(ListAPIView):
+class ListWalletSnapShot(PaginateZero, ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WalletSnapShotListSerializer
     pagination_class = CustomPagination

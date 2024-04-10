@@ -15,11 +15,10 @@ def get_user_wallet(user):
 
 
 def update_user_wallet(wallet, value):
-    try:
-        wallet.balance += value
-        wallet.save()
-    except:
-        pass
+
+    wallet.balance += value
+    wallet.save()
+
 
 
 def create_wallet_snapshot(user):
@@ -38,7 +37,7 @@ def update_wallet(sender, instance, created, **kwargs):
 
     if instance.trade_status == 'CLOSED':
         wallet = get_user_wallet(instance.user)
-        update_user_wallet(wallet, instance.pnl)
+        update_user_wallet(wallet, instance.value)
         create_wallet_snapshot(instance.user)
 
 
