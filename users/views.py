@@ -78,12 +78,13 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
 
 class AllProfileView(ListAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('-id')
     serializer_class = UserDetailsSerializer
     permission_classes = [AdminAccessPermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', "email"]
     pagination_class = CustomPagination
+
 
 
 class SendMessageAPIView(CreateAPIView):
