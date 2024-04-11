@@ -187,14 +187,17 @@ class USChallangeSerializer(serializers.ModelSerializer):
         model = Challange
         fields = '__all__'
 
+
 class USOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
 
+
 class UserSummarySerializer(serializers.ModelSerializer):
     trades = serializers.SerializerMethodField()
-    wallet_history = serializers.SerializerMethodField()
+    # wallet_history = serializers.SerializerMethodField()
+    wallet_snapshot = serializers.SerializerMethodField()
     wallet = serializers.SerializerMethodField()
     challange = serializers.SerializerMethodField()
     orders = serializers.SerializerMethodField()
@@ -210,9 +213,15 @@ class UserSummarySerializer(serializers.ModelSerializer):
         trades = Trade.objects.filter(user=obj)
         return USTradeSerializer(trades, many=True).data
 
-    def get_wallet_history(self, obj):
-        history = WalletHistory.objects.filter(user=obj)
-        return USWalletHistorySerializer(history, many=True).data
+    # def get_wallet_history(self, obj):
+    #     history = WalletHistory.objects.filter(user=obj)
+    #     return USWalletHistorySerializer(history, many=True).data
+
+    def get_wallet_snapshot(self, obj):
+        queryset = WalletSnapShot.objects.filter(
+            user=obj).order_by('-created')
+        queryset = queryset[:20]
+        return WalletSnapShotListSerializer(queryset, many=True).data
 
     def get_wallet(self, obj):
         wallet, created = Wallet.objects.get_or_create(user=obj)

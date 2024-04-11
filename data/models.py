@@ -73,6 +73,7 @@ class WalletSnapShot(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.balance} - {self.created}"
 
+
 class WalletHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wallet_history')
     created = models.DateTimeField(auto_now=True)
